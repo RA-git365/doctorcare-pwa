@@ -18,7 +18,7 @@ body {
   background: #6EC6FF;
 
   /* LOGO WATERMARK */
-  background-image: url("../doctorcare-logo.png");
+  background-image: url("../images/doctorcare-logo.png");
   background-repeat: no-repeat;
   background-position: center 20%;
   background-size: 420px;
