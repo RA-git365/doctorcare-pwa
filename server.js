@@ -1,7 +1,7 @@
 // ======================================================
 // DoctorCare Unified Server (OTP + Email + SMS + Signaling)
 // Author: Rohith Annadatha
-// Version: 2025-11-18
+// Version: 2025-11-18 — FINAL PRODUCTION BUILD
 // ======================================================
 
 const express = require("express");
@@ -83,6 +83,21 @@ async function sendEmailOtp(email, otp) {
 }
 
 // =====================================================
+// 📌 🔥 UNIQUE CHECK (email + mobile)
+// =====================================================
+function isDuplicateUser(role, email, mobile) {
+  const doctorMatch = users.doctors.find(
+    (u) => u.email === email || u.mobile === mobile
+  );
+  const patientMatch = users.patients.find(
+    (u) => u.email === email || u.mobile === mobile
+  );
+
+  if (doctorMatch || patientMatch) return true;
+  return false;
+}
+
+// =====================================================
 // 📌 API: Send OTP for SIGNUP
 // =====================================================
 app.post("/api/signup/sendOtp", async (req, res) => {
@@ -90,6 +105,11 @@ app.post("/api/signup/sendOtp", async (req, res) => {
     const { role, name, email, mobile } = req.body;
     if (!name || !email || !mobile || !role)
       return res.status(400).json({ message: "Missing fields" });
+
+    // 🔐 Unique check
+    if (isDuplicateUser(role, email, mobile)) {
+      return res.status(409).json({ message: "Email or Mobile already exists" });
+    }
 
     // Create OTP pair
     const emailOtp = generateOTP();
@@ -200,10 +220,11 @@ app.post("/api/forgot/resetPassword", (req, res) => {
 // STATIC FILE HOSTING (PWA)
 // =====================================================
 app.use(express.static(__dirname));
-app.use("/css", express.static(path.join(__dirname, "css")));
-app.use("/js", express.static(path.join(__dirname, "js")));
 app.use("/assets", express.static(path.join(__dirname, "assets")));
-app.get(/.*/, (req, res) => {
+app.use("/js", express.static(path.join(__dirname, "js")));
+app.use("/css", express.static(path.join(__dirname, "assets/css")));
+
+app.get("/*", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
@@ -236,7 +257,7 @@ io.on("connection", (socket) => {
 // =====================================================
 // START SERVER
 // =====================================================
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
-  console.log(`🚀 DoctorCare Server Running on http://localhost:${PORT}`);
+  console.log(`🚀 DoctorCare Server Running on port ${PORT}`);
 });
