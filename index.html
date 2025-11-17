@@ -1,59 +1,63 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <link rel="stylesheet" href="./assets/css/style.css" />
-    <title>DoctorCare — PWA</title>
 
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="./manifest.json">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
 
-    <!-- ✅ Correct CSS Path -->
-   <link rel="stylesheet" href="./assets/css/style.css">
-<script src="./js/app.js"></script>
-    <!-- App Theme Color -->
-    <meta name="theme-color" content="#0a0a0f">
+  <title>DoctorCare — PWA</title>
 
-    <!-- Favicon and Icons -->
-    <link rel="icon" type="image/png" href="./assets/doctorcare-logo.png">
-    <link rel="apple-touch-icon" href="./assets/icons/icon-512.png">
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="./manifest.json">
 
-    <!-- SEO Meta -->
-    <meta name="description" content="DoctorCare — Doctor appointments, billing, and video consultations PWA.">
-  </head>
+  <!-- APP THEME -->
+  <meta name="theme-color" content="#0a0a0f">
 
-  <body>
-    <!-- HEADER -->
-    <header>
-      <div>
-        <div style="font-weight:700; font-size:22px; letter-spacing:0.5px;">DoctorCare</div>
-      </div>
-    </header>
+  <!-- ICONS -->
+  <link rel="icon" type="image/png" href="./assets/doctorcare-logo.png">
+  <link rel="apple-touch-icon" href="./assets/icons/icon-512.png">
 
-    <!-- MAIN APP CONTAINER -->
-    <main id="app-root">
-      <div id="app"></div>
-    </main>
+  <!-- CSS (Correct Path) -->
+  <link rel="stylesheet" href="./assets/css/style.css">
 
-    <!-- TOAST NOTIFICATIONS -->
-    <div id="toast" class="toast"></div>
+  <!-- SOCKET.IO CDN -->
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
-    <!-- SOCKET.IO -->
-    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <!-- MAIN JS (defer so page loads first) -->
+  <script src="./js/app.js" defer></script>
 
-    <!-- ✅ Correct JS Path -->
-    <link rel="stylesheet" href="./css/style.css">
-     <script src="./js/app.js"></script>
+  <!-- SEO -->
+  <meta name="description"
+    content="DoctorCare — Doctor appointments, billing, OTP login, and video consultations PWA.">
 
+</head>
 
-    <!-- PWA Service Worker -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./service-worker.js')
-          .then(() => console.log('✅ Service Worker Registered'))
-          .catch(err => console.warn('⚠️ SW registration failed', err));
-      }
-    </script>
-  </body>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div>
+      <div style="font-weight:700; font-size:22px; letter-spacing:0.5px;">DoctorCare</div>
+    </div>
+  </header>
+
+  <!-- MAIN APP -->
+  <main id="app-root">
+    <div id="app"></div>
+  </main>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast"></div>
+
+  <!-- PWA Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./service-worker.js')
+        .then(() => console.log('✅ Service Worker Registered'))
+        .catch(err => console.warn('⚠️ SW registration failed', err));
+    }
+  </script>
+
+</body>
+
 </html>
