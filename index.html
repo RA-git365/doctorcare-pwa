@@ -5,60 +5,56 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
 
-  <!-- Required for GitHub Pages -->
-  <base href="/doctorcare-pwa/">
-
   <title>DoctorCare — PWA</title>
 
-  <!-- Manifest -->
+  <!-- PWA Manifest -->
   <link rel="manifest" href="./manifest.json">
 
-  <!-- Theme -->
+  <!-- Theme Color -->
   <meta name="theme-color" content="#0a0a0f">
 
-  <!-- Icons -->
+  <!-- Favicon (uses only doctorcare-logo.png) -->
   <link rel="icon" type="image/png" href="./assets/doctorcare-logo.png">
-  <link rel="apple-touch-icon" href="./assets/icons/icon-512.png">
+  <link rel="apple-touch-icon" href="./assets/doctorcare-logo.png">
 
-  <!-- Correct CSS -->
+  <!-- CSS -->
   <link rel="stylesheet" href="./assets/css/style.css">
 
-  <!-- Socket.io -->
+  <!-- Socket.IO -->
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
-  <!-- App JS (Important: defer) -->
+  <!-- App JS -->
   <script src="./js/app.js" defer></script>
 
   <!-- SEO -->
   <meta name="description"
-    content="DoctorCare — Doctor appointments, billing, OTP login, and video consultations PWA.">
+    content="DoctorCare — Online doctor appointments, billing, OTP login, and video consultations PWA.">
 </head>
 
 <body>
 
   <!-- HEADER -->
   <header>
-    <img src="./assets/doctorcare-logo.png" alt="DoctorCare" height="36">
+    <img src="./assets/doctorcare-logo.png" alt="DoctorCare Logo" style="height:38px; border-radius:8px;">
     <h1>DoctorCare</h1>
   </header>
 
-  <!-- MAIN APP ROOT (REQUIRED FOR CARDS TO LOAD) -->
+  <!-- MAIN APP -->
   <main id="app-root">
     <div id="app"></div>
   </main>
 
-  <!-- Toast -->
+  <!-- TOAST POPUP -->
   <div id="toast" class="toast"></div>
 
-  <!-- Service Worker -->
+  <!-- SERVICE WORKER -->
   <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./service-worker.js")
-        .then(() => console.log("SW Registered"))
-        .catch(err => console.warn("SW failed", err));
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./service-worker.js')
+        .then(() => console.log('✔ SW Registered'))
+        .catch(err => console.warn('SW Failed:', err));
     }
   </script>
 
 </body>
-
 </html>
