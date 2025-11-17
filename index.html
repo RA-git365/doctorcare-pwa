@@ -5,35 +5,40 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
 
-  <title>DoctorCare — PWA</title>
-
-  <!-- ⚠️ IMPORTANT: GitHub Pages uses subfolder -->
+  <!-- REQUIRED FOR GITHUB PAGES -->
   <base href="/doctorcare-pwa/">
+
+  <title>DoctorCare — PWA</title>
 
   <!-- PWA Manifest -->
   <link rel="manifest" href="./manifest.json">
 
+  <!-- THEME -->
   <meta name="theme-color" content="#0a0a0f">
 
   <!-- ICONS -->
   <link rel="icon" type="image/png" href="./assets/doctorcare-logo.png">
   <link rel="apple-touch-icon" href="./assets/icons/icon-512.png">
 
-  <!-- CSS (Correct for GitHub Pages) -->
+  <!-- MAIN CSS -->
   <link rel="stylesheet" href="./assets/css/style.css">
 
   <!-- SOCKET.IO -->
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
-  <!-- MAIN JS -->
+  <!-- MAIN APP JS -->
   <script src="./js/app.js" defer></script>
 
+  <!-- SEO -->
   <meta name="description"
     content="DoctorCare — Doctor appointments, billing, OTP login, and video consultations PWA.">
 
 </head>
 
 <body>
+
+  <!-- BACKGROUND WITH LOGO -->
+  <div class="background-logo"></div>
 
   <!-- HEADER -->
   <header>
@@ -42,7 +47,7 @@
     </div>
   </header>
 
-  <!-- MAIN APP -->
+  <!-- MAIN APP ROOT -->
   <main id="app-root">
     <div id="app"></div>
   </main>
@@ -55,9 +60,10 @@
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./service-worker.js')
         .then(() => console.log('SW Registered'))
-        .catch(err => console.warn('SW failed', err));
+        .catch(err => console.warn('SW Failed', err));
     }
   </script>
 
 </body>
+
 </html>
