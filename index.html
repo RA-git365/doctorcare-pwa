@@ -7,46 +7,29 @@
 
   <title>DoctorCare — PWA</title>
 
+  <!-- ⚠️ IMPORTANT: GitHub Pages uses subfolder -->
+  <base href="/doctorcare-pwa/">
+
   <!-- PWA Manifest -->
   <link rel="manifest" href="./manifest.json">
 
-  <!-- THEME -->
   <meta name="theme-color" content="#0a0a0f">
 
   <!-- ICONS -->
   <link rel="icon" type="image/png" href="./assets/doctorcare-logo.png">
   <link rel="apple-touch-icon" href="./assets/icons/icon-512.png">
 
-  <!-- MAIN CSS -->
+  <!-- CSS (Correct for GitHub Pages) -->
   <link rel="stylesheet" href="./assets/css/style.css">
 
   <!-- SOCKET.IO -->
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
-  <!-- APP JS -->
+  <!-- MAIN JS -->
   <script src="./js/app.js" defer></script>
 
-  <!-- BACKGROUND LOGO -->
-  <style>
-    body {
-      margin: 0;
-      background: #6EC6FF url("./assets/doctorcare-logo.png") no-repeat center 20%;
-      background-size: 380px;
-      background-attachment: fixed;
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background: rgba(255, 255, 255, 0.35);
-      backdrop-filter: blur(6px);
-      z-index: -1;
-    }
-  </style>
-
-  <!-- SEO -->
-  <meta name="description" content="DoctorCare — Doctor appointments, OTP login, prescriptions, billing and video consultations PWA.">
+  <meta name="description"
+    content="DoctorCare — Doctor appointments, billing, OTP login, and video consultations PWA.">
 
 </head>
 
@@ -54,8 +37,8 @@
 
   <!-- HEADER -->
   <header>
-    <div style="font-weight:700; font-size:22px; letter-spacing:0.5px;">
-      DoctorCare
+    <div>
+      <div style="font-weight:700; font-size:22px; letter-spacing:0.5px;">DoctorCare</div>
     </div>
   </header>
 
@@ -71,11 +54,10 @@
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./service-worker.js')
-        .then(() => console.log('✅ Service Worker Registered'))
-        .catch(err => console.warn('⚠️ Service Worker Error:', err));
+        .then(() => console.log('SW Registered'))
+        .catch(err => console.warn('SW failed', err));
     }
   </script>
 
 </body>
-
 </html>
