@@ -1,22 +1,19 @@
 // ===============================================
-// DoctorCare — Offline PWA (LocalStorage + WebRTC)
+// DoctorCare — Online OTP + Forgot Password (client-side)
 // Author: Rohith Annadatha
-// Updated: 2025-11-17 + AI Chatbot for Patient Dashboard
+// Updated: 2025-11-17 (Full rewrite — online OTP & forgot password integrated)
 // ===============================================
 
 console.log('[DoctorCare] app.js loading...');
 
 // -----------------------
-// CONFIG: AI MODE
+// CONFIG
 // -----------------------
-// If you want to use a remote AI model, set USE_REMOTE_AI = true
-// and implement a server endpoint at POST /api/chat that accepts
-// { message: string, history: [{role:'user'|'assistant', text}] } and returns { reply: string }.
-//
-// For now default is offline local fallback (rule-based).
-const USE_REMOTE_AI = false; // <-- set true only if you have a secure server proxy
-// Note: Do NOT put your API key in client-side JS for production.
+// Toggle remote AI usage (chatbot). Leave false unless you deploy server proxy.
+const USE_REMOTE_AI = false;
 
+// Replace with your deployed backend URL (no trailing slash)
+const SERVER_URL = 'https://your-server-url.com';
 
 // -----------------------
 // Local Storage Handling
@@ -56,21 +53,18 @@ const toast = (m) => {
 };
 
 // -----------------------
-// OTP Management & Temp
+// Temp holders (client-side only)
 // -----------------------
-function generateOTP() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-}
-let tempPatientSignup = null;
-let doctorFPTemp = null;
-let patientFPTemp = null;
+let tempPatientSignup = null; // { name, email, mobile }
+let tempDoctorSignup = null;  // { name, email, mobile, spec }
+let doctorFPTemp = null;      // { email }
+let patientFPTemp = null;     // { email }
 
 // -----------------------
-// Mobile Number Verification
+// Mobile check (client-side quick check)
 // -----------------------
 function mobileExists(mobile) {
-  return store.doctors.some(d => d.mobile === mobile) ||
-         store.patients.some(p => p.mobile === mobile);
+  return store.doctors.some(d => d.mobile === mobile) || store.patients.some(p => p.mobile === mobile);
 }
 
 // -----------------------
@@ -158,7 +152,7 @@ function routeHome() {
 }
 
 // -----------------------
-// DOCTOR: Signup / Login / Forgot
+// DOCTOR: Signup / Login / Forgot (ONLINE verification)
 // -----------------------
 function routeDoctorSignup() {
   shell('Doctor Signup', `
@@ -166,25 +160,105 @@ function routeDoctorSignup() {
     <input id="ds_email" class="input" placeholder="Email"><br>
     <input id="ds_mobile" class="input" placeholder="Mobile Number"><br>
     <input id="ds_spec" class="input" placeholder="Specialization"><br>
-    <input id="ds_password" type="password" class="input" placeholder="Password"><br>
-    <button class="button" onclick="doDoctorSignup()">Create Account</button>
+    <div id="ds_verify_area">
+      <button class="button" onclick="doctorSendSignupOtp()">Verify Email & Mobile</button>
+    </div>
+
+    <div id="ds_otp_section" style="display:none;margin-top:10px">
+      <input id="ds_eotp" class="input" placeholder="Enter Email OTP"><br>
+      <input id="ds_motp" class="input" placeholder="Enter Mobile OTP"><br>
+      <input id="ds_password" type="password" class="input" placeholder="Password"><br>
+      <button class="button" onclick="doDoctorSignup()">Create Account</button>
+    </div>
+
     <button class="button secondary" onclick="history.back()">Cancel</button>
   `);
 }
-function doDoctorSignup() {
-  const d = {
-    id: uid(),
-    name: $('ds_name').value,
-    email: $('ds_email').value,
-    mobile: $('ds_mobile').value,
-    spec: $('ds_spec').value,
-    password: hash($('ds_password').value)
-  };
-  if (!d.name || !d.email || !d.mobile || !d.password) return toast('Missing details');
-  if (store.doctors.some(x => x.email === d.email)) return toast('Email already exists');
-  if (mobileExists(d.mobile)) return toast('Mobile number already registered');
-  store.doctors.push(d); saveStore(store);
-  toast('Doctor registered'); navigate('#/doctor-login');
+
+// sends signup OTPs (server will validate uniqueness and send OTPs via email+SMS)
+async function doctorSendSignupOtp() {
+  const name = $('ds_name').value && $('ds_name').value.trim();
+  const email = $('ds_email').value && $('ds_email').value.trim();
+  const mobile = $('ds_mobile').value && $('ds_mobile').value.trim();
+  const spec = $('ds_spec').value && $('ds_spec').value.trim();
+
+  if (!name || !email || !mobile || !spec) return toast('Fill all fields');
+
+  // quick client check
+  if (mobileExists(mobile)) return toast('Mobile number already registered locally');
+
+  try {
+    const resp = await fetch(`${SERVER_URL}/api/signup/sendOtp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: 'doctor', name, email, mobile, spec })
+    });
+    const j = await resp.json();
+    if (!resp.ok) return toast(j.message || 'Server error');
+
+    // server accepted — show OTP inputs
+    tempDoctorSignup = { name, email, mobile, spec };
+    $('ds_otp_section').style.display = 'block';
+    toast('OTP sent to email & mobile');
+  } catch (e) {
+    console.error(e);
+    toast('Unable to contact server');
+  }
+}
+
+// verifies OTPs via server and creates account on server; also save to local store
+async function doDoctorSignup() {
+  if (!tempDoctorSignup) return toast('Verify email & mobile first');
+
+  const eotp = $('ds_eotp').value && $('ds_eotp').value.trim();
+  const motp = $('ds_motp').value && $('ds_motp').value.trim();
+  const password = $('ds_password').value;
+
+  if (!eotp || !motp || !password) return toast('Enter OTPs and password');
+
+  try {
+    const resp = await fetch(`${SERVER_URL}/api/signup/verifyOtp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        role: 'doctor',
+        name: tempDoctorSignup.name,
+        email: tempDoctorSignup.email,
+        mobile: tempDoctorSignup.mobile,
+        spec: tempDoctorSignup.spec,
+        emailOtp: eotp,
+        mobileOtp: motp,
+        password // plain password sent to server for account creation (server must hash)
+      })
+    });
+    const j = await resp.json();
+    if (!resp.ok) return toast(j.message || 'Verification failed');
+
+    // server returns created user object (id, name, email, mobile, spec)
+    const created = j.user;
+    if (!created) return toast('Server did not return user');
+
+    // save to local store (hash password for local)
+    const d = {
+      id: created.id || uid(),
+      name: created.name,
+      email: created.email,
+      mobile: created.mobile,
+      spec: created.spec || '',
+      password: hash(password)
+    };
+    store.doctors.push(d);
+    saveStore(store);
+
+    tempDoctorSignup = null;
+    $('ds_otp_section').style.display = 'none';
+    toast('Doctor registered');
+    navigate('#/doctor-login');
+
+  } catch (e) {
+    console.error(e);
+    toast('Server error');
+  }
 }
 
 function routeDoctorLogin() {
@@ -203,6 +277,9 @@ function doDoctorLogin() {
   setSession('doctor', d.id); toast('Welcome ' + d.name); navigate('#/doctor-dashboard');
 }
 
+// -----------------------
+// DOCTOR FORGOT PASSWORD (ONLINE)
+// -----------------------
 function routeDoctorForgot() {
   shell('Reset Password (Doctor)', `
     <input id="fp_email" class="input" placeholder="Enter Email"><br>
@@ -215,64 +292,167 @@ function routeDoctorForgot() {
     <button class="button secondary" onclick="history.back()">Cancel</button>
   `);
 }
-function doctorSendOTP() {
+
+// Server sends OTP to email/SMS for forgot password
+async function doctorSendOTP() {
   const email = $('fp_email').value && $('fp_email').value.trim();
-  const user = store.doctors.find(d => d.email === email);
-  if (!user) return toast('Email not found');
-  const code = generateOTP(); doctorFPTemp = { email, code };
-  toast('Doctor OTP: ' + code); $('doctor_fp_area').style.display = 'block';
+  if (!email) return toast('Enter email');
+
+  try {
+    const resp = await fetch(`${SERVER_URL}/api/forgot/sendOtp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: 'doctor', email })
+    });
+    const j = await resp.json();
+    if (!resp.ok) return toast(j.message || 'Server error');
+
+    doctorFPTemp = { email };
+    $('doctor_fp_area').style.display = 'block';
+    toast('OTP sent to registered email/mobile');
+
+  } catch (e) {
+    console.error(e);
+    toast('Unable to contact server');
+  }
 }
-function doctorResetPassword() {
-  const otp = $('fp_otp').value && $('fp_otp').value.trim();
-  const newPass = $('fp_new').value;
+
+// Verify OTP with server and reset. Update local store password.
+async function doctorResetPassword() {
   if (!doctorFPTemp) return toast('Request OTP first');
-  if (otp !== doctorFPTemp.code) return toast('Wrong OTP');
-  const user = store.doctors.find(d => d.email === doctorFPTemp.email);
-  user.password = hash(newPass); saveStore(store); doctorFPTemp = null;
-  toast('Password updated!'); navigate('#/doctor-login');
+  const otp = $('fp_otp').value && $('fp_otp').value.trim();
+  const newPass = $('fp_new').value && $('fp_new').value.trim();
+  if (!otp || !newPass) return toast('Enter OTP and new password');
+
+  try {
+    const resp = await fetch(`${SERVER_URL}/api/forgot/resetPassword`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: 'doctor', email: doctorFPTemp.email, otp, newPassword: newPass })
+    });
+    const j = await resp.json();
+    if (!resp.ok) return toast(j.message || 'Reset failed');
+
+    // update local store if doctor exists locally
+    const doc = store.doctors.find(d => d.email === doctorFPTemp.email);
+    if (doc) {
+      doc.password = hash(newPass);
+      saveStore(store);
+    }
+
+    doctorFPTemp = null;
+    toast('Password updated');
+    navigate('#/doctor-login');
+
+  } catch (e) {
+    console.error(e);
+    toast('Server error');
+  }
 }
 
 // -----------------------
-// PATIENT: Signup / Login / Forgot
+// PATIENT: Signup / Login / Forgot (ONLINE verification)
 // -----------------------
 function routePatientSignup() {
   shell('Patient Signup', `
     <input id="ps_name" class="input" placeholder="Full Name"><br>
     <input id="ps_email" class="input" placeholder="Email"><br>
     <input id="ps_mobile" class="input" placeholder="Mobile Number"><br>
-    <button class="button" onclick="patientSendOTP()">Verify Email & Mobile</button>
+
+    <div id="ps_verify_area">
+      <button class="button" onclick="patientSendOTP()">Verify Email & Mobile</button>
+    </div>
+
     <div id="ps_otp_section" style="display:none;margin-top:10px">
       <input id="ps_eotp" class="input" placeholder="Enter Email OTP"><br>
       <input id="ps_motp" class="input" placeholder="Enter Mobile OTP"><br>
       <input id="ps_password" type="password" class="input" placeholder="Password"><br>
       <button class="button" onclick="doPatientSignup()">Create Account</button>
     </div>
+
     <button class="button secondary" onclick="history.back()">Cancel</button>
   `);
 }
-function patientSendOTP() {
+
+// request server to send OTPs - server will enforce unique email/mobile
+async function patientSendOTP() {
   const name = $('ps_name').value && $('ps_name').value.trim();
   const email = $('ps_email').value && $('ps_email').value.trim();
   const mobile = $('ps_mobile').value && $('ps_mobile').value.trim();
+
   if (!name || !email || !mobile) return toast('Fill all fields');
-  if (store.patients.some(x => x.email === email)) return toast('Email already exists');
-  if (mobileExists(mobile)) return toast('Mobile number already registered');
-  const eOTP = generateOTP(); const mOTP = generateOTP();
-  tempPatientSignup = { name, email, mobile, eOTP, mOTP };
-  toast(`Email OTP: ${eOTP} | Mobile OTP: ${mOTP}`);
-  $('ps_otp_section').style.display = 'block';
+
+  if (mobileExists(mobile)) return toast('Mobile number already registered locally');
+
+  try {
+    const resp = await fetch(`${SERVER_URL}/api/signup/sendOtp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: 'patient', name, email, mobile })
+    });
+    const j = await resp.json();
+    if (!resp.ok) return toast(j.message || 'Server error');
+
+    tempPatientSignup = { name, email, mobile };
+    $('ps_otp_section').style.display = 'block';
+    toast('OTP sent to email & mobile');
+
+  } catch (e) {
+    console.error(e);
+    toast('Unable to contact server');
+  }
 }
-function doPatientSignup() {
+
+// verify OTP with server and create account (server returns created user)
+async function doPatientSignup() {
   if (!tempPatientSignup) return toast('Verify details first');
+
   const eotp = $('ps_eotp').value && $('ps_eotp').value.trim();
   const motp = $('ps_motp').value && $('ps_motp').value.trim();
-  const pass = $('ps_password').value;
-  if (eotp !== tempPatientSignup.eOTP) return toast('Wrong Email OTP');
-  if (motp !== tempPatientSignup.mOTP) return toast('Wrong Mobile OTP');
-  const p = { id: uid(), name: tempPatientSignup.name, email: tempPatientSignup.email, mobile: tempPatientSignup.mobile, password: hash(pass) };
-  store.patients.push(p); saveStore(store);
-  tempPatientSignup = null; $('ps_otp_section').style.display = 'none';
-  toast('Patient registered'); navigate('#/patient-login');
+  const password = $('ps_password').value;
+
+  if (!eotp || !motp || !password) return toast('Enter OTPs and password');
+
+  try {
+    const resp = await fetch(`${SERVER_URL}/api/signup/verifyOtp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        role: 'patient',
+        name: tempPatientSignup.name,
+        email: tempPatientSignup.email,
+        mobile: tempPatientSignup.mobile,
+        emailOtp: eotp,
+        mobileOtp: motp,
+        password
+      })
+    });
+    const j = await resp.json();
+    if (!resp.ok) return toast(j.message || 'Verification failed');
+
+    const created = j.user;
+    if (!created) return toast('Server did not return user');
+
+    // save locally
+    const p = {
+      id: created.id || uid(),
+      name: created.name,
+      email: created.email,
+      mobile: created.mobile,
+      password: hash(password)
+    };
+    store.patients.push(p);
+    saveStore(store);
+
+    tempPatientSignup = null;
+    $('ps_otp_section').style.display = 'none';
+    toast('Patient registered');
+    navigate('#/patient-login');
+
+  } catch (e) {
+    console.error(e);
+    toast('Server error');
+  }
 }
 
 function routePatientLogin() {
@@ -290,6 +470,10 @@ function doPatientLogin() {
   if (!p) return toast('Invalid credentials');
   setSession('patient', p.id); toast('Welcome ' + p.name); navigate('#/patient-dashboard');
 }
+
+// -----------------------
+// PATIENT FORGOT PASSWORD (ONLINE)
+// -----------------------
 function routePatientForgot() {
   shell('Reset Password (Patient)', `
     <input id="pf_email" class="input" placeholder="Enter Email"><br>
@@ -302,25 +486,63 @@ function routePatientForgot() {
     <button class="button secondary" onclick="history.back()">Cancel</button>
   `);
 }
-function patientSendFPOTP() {
+
+// request server to send OTP for forgot password
+async function patientSendFPOTP() {
   const email = $('pf_email').value && $('pf_email').value.trim();
-  const p = store.patients.find(u => u.email === email);
-  if (!p) return toast('Email not found');
-  const OTP = generateOTP(); patientFPTemp = { email, otp: OTP };
-  toast('Patient OTP: ' + OTP); $('pf_box').style.display = 'block';
+  if (!email) return toast('Enter email');
+
+  try {
+    const resp = await fetch(`${SERVER_URL}/api/forgot/sendOtp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: 'patient', email })
+    });
+    const j = await resp.json();
+    if (!resp.ok) return toast(j.message || 'Server error');
+
+    patientFPTemp = { email };
+    $('pf_box').style.display = 'block';
+    toast('OTP sent');
+
+  } catch (e) {
+    console.error(e);
+    toast('Unable to contact server');
+  }
 }
-function patientResetPassword() {
-  const otp = $('pf_otp').value && $('pf_otp').value.trim();
-  const pass = $('pf_new').value;
+
+// verify OTP + reset via server, update local store if user exists locally
+async function patientResetPassword() {
   if (!patientFPTemp) return toast('Request OTP first');
-  if (otp !== patientFPTemp.otp) return toast('Wrong OTP');
-  const user = store.patients.find(u => u.email === patientFPTemp.email);
-  user.password = hash(pass); saveStore(store); patientFPTemp = null;
-  toast('Password Updated'); navigate('#/patient-login');
+  const otp = $('pf_otp').value && $('pf_otp').value.trim();
+  const newPass = $('pf_new').value && $('pf_new').value.trim();
+  if (!otp || !newPass) return toast('Enter OTP and new password');
+
+  try {
+    const resp = await fetch(`${SERVER_URL}/api/forgot/resetPassword`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: 'patient', email: patientFPTemp.email, otp, newPassword: newPass })
+    });
+    const j = await resp.json();
+    if (!resp.ok) return toast(j.message || 'Reset failed');
+
+    // update local store if present
+    const user = store.patients.find(u => u.email === patientFPTemp.email);
+    if (user) { user.password = hash(newPass); saveStore(store); }
+
+    patientFPTemp = null;
+    toast('Password Updated');
+    navigate('#/patient-login');
+
+  } catch (e) {
+    console.error(e);
+    toast('Server error');
+  }
 }
 
 // -----------------------
-// DASHBOARDS
+// DASHBOARDS (unchanged)
 // -----------------------
 function routeDoctorDashboard() {
   const d = currentDoctor(); if (!d) return navigate('#/doctor-login');
@@ -338,9 +560,6 @@ function routeDoctorDashboard() {
     </div>`;
 }
 
-// -----------------------
-// PATIENT DASHBOARD (with Chatbot)
-// -----------------------
 function routePatientDashboard() {
   const p = currentPatient(); if (!p) return navigate('#/patient-login');
 
@@ -358,7 +577,7 @@ function routePatientDashboard() {
             <button class="button" onclick="navigate('#/video-call')">Video Call</button>
           </div>
 
-          <!-- Chatbot panel -->
+          <!-- Chatbot panel (local or remote depending on USE_REMOTE_AI) -->
           <div style="display:flex;flex-direction:column;gap:8px;">
             <div id="chatbox" style="height:360px;overflow:auto;border:1px solid #ddd;padding:10px;border-radius:8px;background:#fafafa"></div>
             <div style="display:flex;gap:8px;">
@@ -379,15 +598,11 @@ function routePatientDashboard() {
     </div>
   `;
 
-  // initialize chat with greeting
-  setTimeout(() => {
-    chatInit();
-    chatBotWelcome();
-  }, 50);
+  setTimeout(() => { chatInit(); chatBotWelcome(); }, 50);
 }
 
 // -----------------------
-// APPOINTMENT
+// APPOINTMENT / PRESCRIPTIONS / BILLING (unchanged)
 // -----------------------
 function routeBookAppointment() {
   const doctors = store.doctors.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
@@ -405,19 +620,11 @@ function saveAppointment() {
   store.appointments.push(a); saveStore(store);
   toast('Appointment saved'); history.back();
 }
+function routePrescriptions() { shell('Prescriptions', `<p>Prescription records coming soon.</p><button class="button secondary" onclick="history.back()">Back</button>`); }
+function routeBilling() { shell('Billing Summary', `<p>Billing records coming soon.</p><button class="button secondary" onclick="history.back()">Back</button>`); }
 
 // -----------------------
-// PRESCRIPTIONS & BILLING
-// -----------------------
-function routePrescriptions() {
-  shell('Prescriptions', `<p>Prescription records coming soon.</p><button class="button secondary" onclick="history.back()">Back</button>`);
-}
-function routeBilling() {
-  shell('Billing Summary', `<p>Billing records coming soon.</p><button class="button secondary" onclick="history.back()">Back</button>`);
-}
-
-// -----------------------
-// VIDEO CALL (WebRTC)
+// VIDEO CALL (WebRTC) - unchanged
 // -----------------------
 const SIGNALING_URL = window.location.origin;
 const RTC_CONFIG = { iceServers: [{ urls: ['stun:stun.l.google.com:19302'] }] };
@@ -461,8 +668,7 @@ async function onOffer(payload) {
   pc.ontrack = e => $('remoteVideo').srcObject = e.streams[0];
   pc.onicecandidate = e => e.candidate && socket.emit('ice-candidate', { roomId: currentRoomId, candidate: e.candidate });
   const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true }); $('localVideo').srcObject = stream; stream.getTracks().forEach(t => pc.addTrack(t, stream));
-  await pc.setRemoteDescription({ type: 'offer', sdp: payload.sdp });
-  const answer = await pc.createAnswer(); await pc.setLocalDescription(answer);
+  await pc.setRemoteDescription({ type: 'offer', sdp: payload.sdp }); const answer = await pc.createAnswer(); await pc.setLocalDescription(answer);
   socket.emit('answer', { roomId: currentRoomId, sdp: answer.sdp, type: 'answer' });
 }
 async function onAnswer(payload) { await pc.setRemoteDescription({ type: 'answer', sdp: payload.sdp }); }
@@ -470,81 +676,41 @@ function onRemoteIce(payload) { if (pc && payload.candidate) pc.addIceCandidate(
 function endCall() { if (pc) pc.close(); pc = null; toast('Call ended'); }
 
 // -----------------------
-// CHATBOT: UI Helpers
+// CHATBOT (local fallback OR remote via /api/chat if USE_REMOTE_AI true)
 // -----------------------
+// ... (same chatbot code as before; using localBotResponse if remote fails)
+// For brevity I will reuse the same helper functions from earlier:
 function chatInit() {
-  const box = $('chatbox'); if (!box) return;
-  box.innerHTML = ''; // clear
-  // conversational history kept for remote calls
-  box._history = box._history || [];
+  const box = $('chatbox'); if (!box) return; box.innerHTML = ''; box._history = box._history || [];
 }
-function chatBotWelcome() {
-  appendMessage('assistant', `Hi! I'm DoctorCare assistant. I can help with booking appointments, symptom triage, prescriptions, and billing. Try asking "I have fever" or "How do I book an appointment?"`);
-}
+function chatBotWelcome() { appendMessage('assistant', `Hi! I'm DoctorCare assistant. I can help with booking appointments, symptom triage, prescriptions, and billing. Try asking "I have fever" or "How do I book an appointment?"`); }
 function appendMessage(role, text) {
   const box = $('chatbox'); if (!box) return;
-  const el = document.createElement('div');
-  el.style.marginBottom = '8px';
-  el.style.display = 'flex';
-  el.style.flexDirection = 'column';
-  if (role === 'user') {
-    el.innerHTML = `<div style="align-self:flex-end;background:#cfe9ff;padding:8px;border-radius:8px;max-width:85%">${escapeHtml(text)}</div>`;
-  } else {
-    el.innerHTML = `<div style="align-self:flex-start;background:#fff;padding:8px;border-radius:8px;max-width:85%;border:1px solid #eee">${escapeHtml(text)}</div>`;
-  }
-  box.appendChild(el);
-  box.scrollTop = box.scrollHeight;
-  // store history
-  box._history = box._history || [];
-  box._history.push({ role, text });
-  if (box._history.length > 50) box._history.shift();
+  const el = document.createElement('div'); el.style.marginBottom = '8px'; el.style.display = 'flex'; el.style.flexDirection = 'column';
+  if (role === 'user') el.innerHTML = `<div style="align-self:flex-end;background:#cfe9ff;padding:8px;border-radius:8px;max-width:85%">${escapeHtml(text)}</div>`;
+  else el.innerHTML = `<div style="align-self:flex-start;background:#fff;padding:8px;border-radius:8px;max-width:85%;border:1px solid #eee">${escapeHtml(text)}</div>`;
+  box.appendChild(el); box.scrollTop = box.scrollHeight;
+  box._history = box._history || []; box._history.push({ role, text }); if (box._history.length > 50) box._history.shift();
 }
-function escapeHtml(s) {
-  if (!s) return '';
-  return s.replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]); });
-}
-function chatClear() {
-  const box = $('chatbox'); if (!box) return;
-  box.innerHTML = ''; box._history = [];
-  chatBotWelcome();
-}
+function escapeHtml(s) { if (!s) return ''; return s.replace(/[&<>"']/g, function(m){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]); }); }
+function chatClear() { const box = $('chatbox'); if (!box) return; box.innerHTML = ''; box._history = []; chatBotWelcome(); }
 function chatSuggest(text) { $('chatInput').value = text; chatSend(); }
-
-// -----------------------
-// CHATBOT: Send / Receive
-// -----------------------
 async function chatSend() {
-  const input = $('chatInput'); if (!input) return;
-  const message = (input.value || '').trim(); if (!message) return;
-  appendMessage('user', message); input.value = '';
-  // show typing indicator
-  appendMessage('assistant', '...'); // temporary
-  const box = $('chatbox');
+  const input = $('chatInput'); if (!input) return; const message = (input.value || '').trim(); if (!message) return;
+  appendMessage('user', message); input.value = ''; appendMessage('assistant', '...'); const box = $('chatbox');
   try {
     const reply = await chatGetReply(message, box._history || []);
-    // remove last '...' assistant message
-    const last = box.lastChild;
-    if (last && last.innerText.trim() === '...') last.remove();
+    const last = box.lastChild; if (last && last.innerText.trim() === '...') last.remove();
     appendMessage('assistant', reply);
   } catch (err) {
-    // remove last '...' assistant message
-    const last = box.lastChild;
-    if (last && last.innerText.trim() === '...') last.remove();
-    appendMessage('assistant', 'Sorry, I had an error. Try again.');
-    console.error('chat error', err);
+    const last = box.lastChild; if (last && last.innerText.trim() === '...') last.remove();
+    appendMessage('assistant', 'Sorry, I had an error. Try again.'); console.error('chat error', err);
   }
 }
-
-// Returns a string reply (either from remote AI or local fallback)
 async function chatGetReply(message, history) {
   if (USE_REMOTE_AI) {
-    // call remote server endpoint (you must implement /api/chat)
     try {
-      const resp = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, history })
-      });
+      const resp = await fetch(`${SERVER_URL}/api/chat`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ message, history }) });
       if (!resp.ok) throw new Error('server error');
       const data = await resp.json();
       if (data && data.reply) return data.reply;
@@ -553,86 +719,39 @@ async function chatGetReply(message, history) {
       console.warn('remote ai failed, falling back to local', e);
       return localBotResponse(message);
     }
-  } else {
-    // offline local rule-based assistant
-    return localBotResponse(message);
-  }
+  } else return localBotResponse(message);
 }
-
-// -----------------------
-// Simple Local Rule-Based Bot (fallback)
-// -----------------------
 function localBotResponse(message) {
-  // Normalize
   const msg = message.toLowerCase();
-
-  // Quick intents
-  if (/(hello|hi|hey|good morning|good evening)/.test(msg)) {
-    return "Hello! 👋 I can help you book appointments, check prescriptions, triage symptoms, and explain billing. What would you like to do?";
-  }
-
-  if (/book.*appointment|how.*book.*appointment/.test(msg)) {
-    return "To book an appointment: go to 'Book Appointment' → choose a doctor and time → Save. Would you like me to open the booking page for you? (type 'open booking')";
-  }
-
-  if (/open booking/.test(msg)) {
-    navigate('#/book-appointment');
-    return "Opening booking page now.";
-  }
-
+  if (/(hello|hi|hey|good morning|good evening)/.test(msg)) return "Hello! 👋 I can help you book appointments, check prescriptions, triage symptoms, and explain billing. What would you like to do?";
+  if (/book.*appointment|how.*book.*appointment/.test(msg)) return "To book an appointment: go to 'Book Appointment' → choose a doctor and time → Save. Would you like me to open the booking page for you? (type 'open booking')";
+  if (/open booking/.test(msg)) { navigate('#/book-appointment'); return "Opening booking page now."; }
   if (/prescription|prescribe|medication/.test(msg)) {
-    // show simple list if any prescriptions exist for this patient
-    const p = currentPatient();
-    if (!p) return "Please login as a patient to view prescriptions.";
-    const pres = store.prescriptions.filter(x => x.patientId === p.id);
-    if (!pres.length) return "You have no saved prescriptions yet.";
+    const p = currentPatient(); if (!p) return "Please login as a patient to view prescriptions.";
+    const pres = store.prescriptions.filter(x => x.patientId === p.id); if (!pres.length) return "You have no saved prescriptions yet.";
     return "You have " + pres.length + " prescription(s). (This demo does not show full details.)";
   }
-
-  // Symptom triage (very basic, not medical advice)
   if (/fever|temperature|cough|cold|headache|sore throat/.test(msg)) {
-    // Basic rules
-    const hasFever = /fever|temperature/.test(msg);
-    const hasCough = /cough|sore throat/.test(msg);
+    const hasFever = /fever|temperature/.test(msg); const hasCough = /cough|sore throat/.test(msg);
     const hasBreathless = /shortness of breath|breathless|difficulty breathing/.test(msg);
-
-    if (hasBreathless) {
-      return "If you are having difficulty breathing, seek urgent medical attention or call emergency services immediately. I can help book an urgent appointment.";
-    }
-    if (hasFever && hasCough) {
-      return "You may have a viral infection. Rest, stay hydrated, and monitor temperature. If fever > 102°F (39°C) or symptoms worsen, book a doctor visit. Would you like me to help book?";
-    }
+    if (hasBreathless) return "If you are having difficulty breathing, seek urgent medical attention or call emergency services immediately. I can help book an urgent appointment.";
+    if (hasFever && hasCough) return "You may have a viral infection. Rest, stay hydrated, and monitor temperature. If fever > 102°F (39°C) or symptoms worsen, book a doctor visit. Would you like me to help book?";
     if (hasFever) return "For fever, rest and fluids help. Monitor your temperature. If fever persists for >48 hours or is very high, consult a doctor.";
     if (hasCough) return "For cough/cold: rest, fluids, steam inhalation. If cough persists >2 weeks or is severe, consult a doctor.";
   }
-
-  // Billing
-  if (/bill|billing|payment|fee/.test(msg)) {
-    return "Billing is currently demo-mode. You can generate bills from the Billing screen (coming soon). For now, contact the clinic directly for invoice requests.";
-  }
-
-  // Appointment lookup
+  if (/bill|billing|payment|fee/.test(msg)) return "Billing is currently demo-mode. You can generate bills from the Billing screen (coming soon). For now, contact the clinic directly for invoice requests.";
   if (/my appointments|appointments|upcoming appointment/.test(msg)) {
-    const p = currentPatient();
-    if (!p) return "Please login as patient to see your appointments.";
-    const myAppts = store.appointments.filter(a => a.patientId === p.id);
-    if (!myAppts.length) return "You have no upcoming appointments.";
-    const lines = myAppts.slice(0,5).map(a => {
-      const doc = store.doctors.find(d=>d.id===a.doctorId);
-      return `${doc ? doc.name : 'Doctor'} — ${a.time} — ${a.status}`;
-    });
+    const p = currentPatient(); if (!p) return "Please login as patient to see your appointments.";
+    const myAppts = store.appointments.filter(a => a.patientId === p.id); if (!myAppts.length) return "You have no upcoming appointments.";
+    const lines = myAppts.slice(0,5).map(a => { const doc = store.doctors.find(d=>d.id===a.doctorId); return `${doc ? doc.name : 'Doctor'} — ${a.time} — ${a.status}`; });
     return "Your appointments:\n" + lines.join("\n");
   }
-
-  // Small talk fallback
   if (/thank|thx|thanks/.test(msg)) return "You're welcome! Anything else I can do?";
   if (/bye|goodbye|see you/.test(msg)) return "Goodbye — take care!";
-
-  // Default helpful reply
   return "I can help with: booking appointments, symptom triage, prescriptions, and billing. Try asking 'How do I book an appointment?' or describe your symptoms like 'I have fever and cough'.";
 }
 
 // -----------------------
-// Console log ready
+// Init
 // -----------------------
-console.log('[DoctorCare] app.js initialized with Chatbot ✅');
+console.log('[DoctorCare] app.js initialized — online OTP & forgot-password integrated ✅');
