@@ -30,13 +30,18 @@ body {
     var(--logo-path),
     radial-gradient(circle at center, rgba(0,80,180,0.06), transparent 40%);
   background-repeat: no-repeat, no-repeat;
-  background-position: center 18%, center;
-  background-size: 420px, cover;
+
+  /* ✔ Center the logo perfectly */
+  background-position: center center, center;  
+  background-size: 380px, cover;
+
   background-attachment: fixed;
 
   color: #013149;
   position: relative;
   min-height: 100vh;
+}
+
 }
 
 /* Blur overlay */
