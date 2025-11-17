@@ -19,7 +19,7 @@ const app = express();
 // ---------------------------
 
 // 1️⃣ Your 2Factor API Key
-const TWO_FACTOR_API_KEY = "YOUR_2FACTOR_API_KEY";
+const TWO_FACTOR_API_KEY = "bf4daa49-c38c-11f0-a6b2-0200cd936042";
 
 // 2️⃣ Email account for OTP (Gmail)
 const EMAIL_USER = "YOUR_GMAIL@gmail.com";
@@ -60,7 +60,7 @@ let users = { doctors: [], patients: [] }; // temporary storage (since no DB)
 // 📌 Send SMS OTP (2FACTOR)
 // =====================================================
 async function sendSmsOtp(mobile, otp) {
-  const url = `https://2factor.in/API/V1/${bf4daa49-c38c-11f0-a6b2-0200cd936042}/SMS/${mobile}/${otp}`;
+  const url = `https://2factor.in/API/V1/${"bf4daa49-c38c-11f0-a6b2-0200cd936042"}/SMS/${mobile}/${otp}`;
   try {
     const resp = await axios.get(url);
     return resp.data;
@@ -261,4 +261,5 @@ const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`🚀 DoctorCare Server Running on port ${PORT}`);
 });
+
 
