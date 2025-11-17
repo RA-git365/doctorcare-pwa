@@ -1,308 +1,242 @@
-// =====================================
-// DoctorCare Combined Server
-// Static + Signaling + OTP + Auth Backend
+// ======================================================
+// DoctorCare Unified Server (OTP + Email + SMS + Signaling)
 // Author: Rohith Annadatha
-// Updated: 2025-11-17
-// =====================================
+// Version: 2025-11-18
+// ======================================================
 
-// ===============================
-// REQUIRE PACKAGES
-// ===============================
 const express = require("express");
 const http = require("http");
-const path = require("path");
 const cors = require("cors");
-const fs = require("fs");
-const bcrypt = require("bcryptjs");
+const path = require("path");
+const axios = require("axios");
+const nodemailer = require("nodemailer");
 const { Server } = require("socket.io");
 
-// For email sending (Gmail SMTP)
-const nodemailer = require("nodemailer");
-
-// For SMS sending (Fast2SMS or any provider)
-const axios = require("axios");
-
-// ===============================
-// EXPRESS APP
-// ===============================
 const app = express();
+
+// ---------------------------
+// CONFIG (SET THESE)
+// ---------------------------
+
+// 1️⃣ Your 2Factor API Key
+const TWO_FACTOR_API_KEY = "YOUR_2FACTOR_API_KEY";
+
+// 2️⃣ Email account for OTP (Gmail)
+const EMAIL_USER = "YOUR_GMAIL@gmail.com";
+const EMAIL_PASS = "YOUR_GMAIL_APP_PASSWORD";
+
+// ---------------------------
+// Middlewares
+// ---------------------------
 app.use(cors({ origin: "*", methods: ["GET", "POST"] }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// ===============================
-// SIMPLE JSON DATABASE
-// ===============================
-const DB_FILE = path.join(__dirname, "doctorcare_db.json");
-
-// Load DB or create new
-let DB = {
-  doctors: [],
-  patients: []
-};
-
-// Load existing DB file
-if (fs.existsSync(DB_FILE)) {
-  try {
-    DB = JSON.parse(fs.readFileSync(DB_FILE, "utf8"));
-  } catch (e) {
-    console.log("⚠ Error loading DB, creating fresh DB.");
-  }
-}
-
-// Save DB to file
-function saveDB() {
-  fs.writeFileSync(DB_FILE, JSON.stringify(DB, null, 2));
-}
-
-// ===============================
-// TEMP OTP STORE (NOT PERMANENT)
-// ===============================
-const OTP_STORE = {}; 
-// format:
-// OTP_STORE[email] = { emailOtp, mobileOtp, role, name, mobile, spec?, expires }
-
-// ===============================
-// EMAIL SENDER (Gmail SMTP)
-// ===============================
-const mailer = nodemailer.createTransport({
+// ---------------------------
+// Email Transport (Gmail)
+// ---------------------------
+const emailTransport = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: "YOUR_GMAIL@gmail.com",
-    pass: "YOUR_APP_PASSWORD"  // Gmail App Password ONLY
-  }
+    user: EMAIL_USER,
+    pass: EMAIL_PASS,
+  },
 });
 
-// ===============================
-// SMS SENDER (Fast2SMS or other)
-// ===============================
-// Replace "YOUR_API_KEY"
-async function sendSMS(mobile, otp) {
-  try {
-    await axios.post("https://www.fast2sms.com/dev/bulkV2", {
-      route: "v3",
-      sender_id: "TXTIND",
-      message: `Your DoctorCare OTP is ${otp}`,
-      language: "english",
-      flash: 0,
-      numbers: mobile
-    }, {
-      headers: {
-        authorization: "YOUR_FAST2SMS_API_KEY"
-      }
-    });
-    return true;
-  } catch (err) {
-    console.log("SMS ERROR:", err.response?.data || err);
-    return false;
-  }
-}
-
-// ===============================
-// OTP GENERATOR
-// ===============================
+// -----------------------------------------------------
+// OTP GENERATION
+// -----------------------------------------------------
 function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-// ===============================
-// API: SEND OTP FOR SIGNUP
-// ===============================
-app.post("/api/signup/sendOtp", async (req, res) => {
-  const { role, name, email, mobile, spec } = req.body;
+// =====================================================
+// 🚀 In-Memory OTP Storage  (Simple + Fast)
+// =====================================================
+let otpStore = {}; // { email: { emailOtp, mobileOtp, expires }, mobile: { ... } }
+let users = { doctors: [], patients: [] }; // temporary storage (since no DB)
 
-  if (!role || !name || !email || !mobile)
-    return res.status(400).json({ message: "Missing fields" });
-
-  // Check already exists in server DB
-  if (DB[role + "s"].some(u => u.email === email))
-    return res.status(409).json({ message: "Email already exists" });
-
-  if (DB[role + "s"].some(u => u.mobile === mobile))
-    return res.status(409).json({ message: "Mobile already exists" });
-
-  const emailOtp = generateOTP();
-  const mobileOtp = generateOTP();
-
-  // Save OTP data
-  OTP_STORE[email] = {
-    role, name, email, mobile, spec,
-    emailOtp, mobileOtp,
-    expires: Date.now() + (5 * 60 * 1000)
-  };
-
-  // Send email OTP
+// =====================================================
+// 📌 Send SMS OTP (2FACTOR)
+// =====================================================
+async function sendSmsOtp(mobile, otp) {
+  const url = `https://2factor.in/API/V1/${TWO_FACTOR_API_KEY}/SMS/${mobile}/${otp}`;
   try {
-    await mailer.sendMail({
-      from: "DoctorCare <YOUR_GMAIL@gmail.com>",
-      to: email,
-      subject: "DoctorCare Email Verification OTP",
-      text: `Your email OTP is: ${emailOtp}`
-    });
-  } catch (e) {
-    console.log("Email error:", e);
+    const resp = await axios.get(url);
+    return resp.data;
+  } catch (err) {
+    console.error("SMS ERROR:", err);
+    throw new Error("SMS OTP failed");
   }
+}
 
-  // Send mobile OTP via SMS
-  await sendSMS(mobile, mobileOtp);
+// =====================================================
+// 📌 Send Email OTP
+// =====================================================
+async function sendEmailOtp(email, otp) {
+  return emailTransport.sendMail({
+    from: `DoctorCare <${EMAIL_USER}>`,
+    to: email,
+    subject: "DoctorCare OTP Verification",
+    text: `Your OTP is ${otp}`,
+  });
+}
 
-  return res.json({ message: "OTP Sent to Email & Mobile" });
+// =====================================================
+// 📌 API: Send OTP for SIGNUP
+// =====================================================
+app.post("/api/signup/sendOtp", async (req, res) => {
+  try {
+    const { role, name, email, mobile } = req.body;
+    if (!name || !email || !mobile || !role)
+      return res.status(400).json({ message: "Missing fields" });
+
+    // Create OTP pair
+    const emailOtp = generateOTP();
+    const mobileOtp = generateOTP();
+
+    // Store temporary OTP
+    otpStore[email] = {
+      emailOtp,
+      mobileOtp,
+      expires: Date.now() + 5 * 60 * 1000,
+      role,
+      name,
+      email,
+      mobile,
+    };
+
+    // Send Email OTP
+    await sendEmailOtp(email, emailOtp);
+
+    // Send SMS OTP
+    await sendSmsOtp(mobile, mobileOtp);
+
+    return res.json({ message: "OTP sent successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to send OTP" });
+  }
 });
 
-// ===============================
-// API: VERIFY SIGNUP OTP + CREATE ACCOUNT
-// ===============================
+// =====================================================
+// 📌 API: Verify OTP & Create Account
+// =====================================================
 app.post("/api/signup/verifyOtp", async (req, res) => {
-  const { role, name, email, mobile, spec, emailOtp, mobileOtp, password } = req.body;
+  try {
+    const { role, name, email, mobile, emailOtp, mobileOtp, password } = req.body;
 
-  const record = OTP_STORE[email];
-  if (!record)
-    return res.status(400).json({ message: "OTP not requested" });
+    const record = otpStore[email];
+    if (!record) return res.status(400).json({ message: "OTP expired / invalid" });
+    if (Date.now() > record.expires) return res.status(400).json({ message: "OTP expired" });
+    if (record.emailOtp !== emailOtp) return res.status(400).json({ message: "Wrong Email OTP" });
+    if (record.mobileOtp !== mobileOtp) return res.status(400).json({ message: "Wrong Mobile OTP" });
 
-  if (Date.now() > record.expires)
-    return res.status(400).json({ message: "OTP expired" });
+    // Create user
+    const user = {
+      id: Date.now().toString(),
+      role,
+      name,
+      email,
+      mobile,
+      password,
+    };
 
-  if (record.emailOtp !== emailOtp)
-    return res.status(400).json({ message: "Wrong Email OTP" });
+    if (role === "doctor") users.doctors.push(user);
+    else users.patients.push(user);
 
-  if (record.mobileOtp !== mobileOtp)
-    return res.status(400).json({ message: "Wrong Mobile OTP" });
+    delete otpStore[email];
 
-  // Hash password
-  const hashed = await bcrypt.hash(password, 10);
-
-  const user = {
-    id: Date.now().toString(),
-    name,
-    email,
-    mobile,
-    spec: spec || "",
-    password: hashed
-  };
-
-  DB[role + "s"].push(user);
-  saveDB();
-
-  // Delete OTP temp
-  delete OTP_STORE[email];
-
-  return res.json({ message: "Signup Successful", user });
+    return res.json({ message: "Signup complete", user });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Signup failed" });
+  }
 });
 
-// ===============================
-// API: SEND OTP FOR FORGOT PASSWORD
-// ===============================
+// =====================================================
+// 📌 API: Forgot Password — Send OTP
+// =====================================================
 app.post("/api/forgot/sendOtp", async (req, res) => {
   const { role, email } = req.body;
 
-  if (!role || !email)
-    return res.status(400).json({ message: "Missing fields" });
+  // Find user
+  const userList = role === "doctor" ? users.doctors : users.patients;
+  const user = userList.find(u => u.email === email);
 
-  const user = DB[role + "s"].find(u => u.email === email);
-  if (!user)
-    return res.status(404).json({ message: "Email not found" });
+  if (!user) return res.status(404).json({ message: "Email not found" });
 
   const otp = generateOTP();
+  otpStore[email] = { otp, expires: Date.now() + 5 * 60 * 1000, role };
 
-  OTP_STORE[email] = {
-    role,
-    email,
-    forgotOtp: otp,
-    expires: Date.now() + (5 * 60 * 1000)
-  };
+  // Send OTP by email
+  await sendEmailOtp(email, otp);
 
-  // Send Email OTP
-  try {
-    await mailer.sendMail({
-      from: "DoctorCare <YOUR_GMAIL@gmail.com>",
-      to: email,
-      subject: "DoctorCare Password Reset OTP",
-      text: `Your OTP is: ${otp}`
-    });
-  } catch (e) {}
-
-  // SMS
-  await sendSMS(user.mobile, otp);
-
-  return res.json({ message: "OTP Sent" });
+  return res.json({ message: "OTP sent for password reset" });
 });
 
-// ===============================
-// API: RESET PASSWORD
-// ===============================
-app.post("/api/forgot/resetPassword", async (req, res) => {
+// =====================================================
+// 📌 API: Forgot Password — Reset
+// =====================================================
+app.post("/api/forgot/resetPassword", (req, res) => {
   const { role, email, otp, newPassword } = req.body;
+  const record = otpStore[email];
 
-  const record = OTP_STORE[email];
-  if (!record)
-    return res.status(400).json({ message: "OTP not requested" });
-
-  if (Date.now() > record.expires)
-    return res.status(400).json({ message: "OTP expired" });
-
-  if (record.forgotOtp !== otp)
+  if (!record || record.otp !== otp)
     return res.status(400).json({ message: "Invalid OTP" });
 
-  const user = DB[role + "s"].find(u => u.email === email);
-  if (!user)
-    return res.status(404).json({ message: "User not found" });
+  const list = role === "doctor" ? users.doctors : users.patients;
+  const user = list.find(u => u.email === email);
 
-  user.password = await bcrypt.hash(newPassword, 10);
-  saveDB();
+  if (!user) return res.status(404).json({ message: "User not found" });
 
-  delete OTP_STORE[email];
+  user.password = newPassword;
+  delete otpStore[email];
 
-  return res.json({ message: "Password reset successful" });
+  res.json({ message: "Password updated" });
 });
 
-// ===============================
-// STATIC FILES (FRONTEND PWA)
-// ===============================
+// =====================================================
+// STATIC FILE HOSTING (PWA)
+// =====================================================
 app.use(express.static(__dirname));
-
-app.use('/css', express.static(path.join(__dirname, 'css')));
-app.use('/js', express.static(path.join(__dirname, 'js')));
-app.use('/assets', express.static(path.join(__dirname, 'assets')));
-
+app.use("/css", express.static(path.join(__dirname, "css")));
+app.use("/js", express.static(path.join(__dirname, "js")));
+app.use("/assets", express.static(path.join(__dirname, "assets")));
 app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// ===============================
-// SOCKET.IO SIGNALING SERVER
-// ===============================
+// =====================================================
+// SOCKET.IO (WebRTC Signaling)
+// =====================================================
 const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: "*" } });
 
-const io = new Server(server, {
-  cors: { origin: "*", methods: ["GET", "POST"] }
-});
+io.on("connection", (socket) => {
+  console.log("Connected:", socket.id);
 
-io.on("connection", socket => {
-  console.log("User connected:", socket.id);
-
-  socket.on("join-room", roomId => {
+  socket.on("join-room", (roomId) => {
     socket.join(roomId);
   });
 
-  socket.on("offer", payload => {
+  socket.on("offer", (payload) => {
     socket.to(payload.roomId).emit("offer", payload);
   });
 
-  socket.on("answer", payload => {
+  socket.on("answer", (payload) => {
     socket.to(payload.roomId).emit("answer", payload);
   });
 
-  socket.on("ice-candidate", payload => {
+  socket.on("ice-candidate", (payload) => {
     socket.to(payload.roomId).emit("ice-candidate", payload);
   });
-
-  socket.on("disconnect", () => {});
 });
 
-// ===============================
+// =====================================================
 // START SERVER
-// ===============================
+// =====================================================
 const PORT = 5000;
-server.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 DoctorCare Combined Server running`);
-  console.log(`🌐 http://localhost:${PORT}`);
+server.listen(PORT, () => {
+  console.log(`🚀 DoctorCare Server Running on http://localhost:${PORT}`);
 });
