@@ -5,62 +5,57 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
 
-  <!-- REQUIRED FOR GITHUB PAGES -->
+  <!-- Required for GitHub Pages -->
   <base href="/doctorcare-pwa/">
 
   <title>DoctorCare — PWA</title>
 
-  <!-- PWA Manifest -->
+  <!-- Manifest -->
   <link rel="manifest" href="./manifest.json">
 
-  <!-- THEME -->
+  <!-- Theme -->
   <meta name="theme-color" content="#0a0a0f">
 
-  <!-- ICONS -->
+  <!-- Icons -->
   <link rel="icon" type="image/png" href="./assets/doctorcare-logo.png">
   <link rel="apple-touch-icon" href="./assets/icons/icon-512.png">
 
-  <!-- MAIN CSS -->
+  <!-- Correct CSS -->
   <link rel="stylesheet" href="./assets/css/style.css">
 
-  <!-- SOCKET.IO -->
+  <!-- Socket.io -->
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
-  <!-- MAIN APP JS -->
+  <!-- App JS (Important: defer) -->
   <script src="./js/app.js" defer></script>
 
   <!-- SEO -->
   <meta name="description"
     content="DoctorCare — Doctor appointments, billing, OTP login, and video consultations PWA.">
-
 </head>
 
 <body>
 
-  <!-- BACKGROUND WITH LOGO -->
-  <div class="background-logo"></div>
-
   <!-- HEADER -->
   <header>
-    <div>
-      <div style="font-weight:700; font-size:22px; letter-spacing:0.5px;">DoctorCare</div>
-    </div>
+    <img src="./assets/doctorcare-logo.png" alt="DoctorCare" height="36">
+    <h1>DoctorCare</h1>
   </header>
 
-  <!-- MAIN APP ROOT -->
+  <!-- MAIN APP ROOT (REQUIRED FOR CARDS TO LOAD) -->
   <main id="app-root">
     <div id="app"></div>
   </main>
 
-  <!-- TOAST -->
+  <!-- Toast -->
   <div id="toast" class="toast"></div>
 
-  <!-- SERVICE WORKER -->
+  <!-- Service Worker -->
   <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./service-worker.js')
-        .then(() => console.log('SW Registered'))
-        .catch(err => console.warn('SW Failed', err));
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./service-worker.js")
+        .then(() => console.log("SW Registered"))
+        .catch(err => console.warn("SW failed", err));
     }
   </script>
 
