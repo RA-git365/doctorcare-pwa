@@ -1,416 +1,132 @@
-/* =======================================================
-   DOCTORCARE — FULL UNIFIED UI THEME (Hybrid Pro Blue)
-   Author: Rohith Annadatha (Final Production Stylesheet)
-   =======================================================*/
-
-/* -----------------------------------
-   GLOBAL THEME COLORS
------------------------------------ */
-:root{
-  --blue-100: #e8f3ff;
-  --blue-200: #d6ebff;
-  --blue-300: #a7d2ff;
-  --blue-400: #5bb1ff;
-  --blue-500: #0077ff;
-  --blue-600: #005fcc;
-  --blue-700: #004799;
-
-  --sidebar-bg: #002b55;
-  --sidebar-hover: #00376e;
-
-  --bg-main: #f7faff;
-  --text-dark: #1d2d41;
-  --text-muted: #5f7d95;
-
-  --card-bg: #ffffff;
-  --border: #d8e2ee;
-
-  --success: #00b36b;
-  --danger: #ff3b3b;
-}
-
-/* -----------------------------------
-   GLOBAL RESET
------------------------------------ */
-* { 
-  box-sizing: border-box; 
-  margin: 0; 
+/* GLOBAL */
+* {
+  margin: 0;
   padding: 0;
-  font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
 }
 
-html, body { height: 100%; background: var(--bg-main); }
-
-/* -----------------------------------
-   HEADER (Landing only)
------------------------------------ */
-header {
-  display: flex;
-  align-items: center;
-  padding: 14px 26px;
-  background: rgba(255,255,255,0.9);
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  backdrop-filter: blur(10px);
-}
-header.hidden { display: none; }
-
-header img { height: 38px; }
-header h1 {
-  margin-left: 12px;
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--blue-700);
-}
-
-/* -----------------------------------
-   LANDING PAGE
------------------------------------ */
-.landing-wrapper{
-  margin-top: 40px;
+body {
+  background: linear-gradient(180deg, #045bb4, #0a7dd9);
+  color: white;
   text-align: center;
+  padding-bottom: 50px;
+}
+
+/* TOP BUTTONS */
+.top-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 25px 0;
+}
+
+.top-buttons button {
+  background: white;
+  color: #0a0a0a;
+  padding: 12px 22px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+.top-buttons button:hover {
+  transform: scale(1.05);
+}
+
+/* MAIN SECTION */
+.main-section {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  align-items: center;
   padding: 20px;
 }
 
-.landing-hero img {
-  width: 220px;
-  margin-bottom: 18px;
-}
-
-.landing-hero h1 {
-  font-size: 32px;
-  color: var(--blue-700);
-  margin-bottom: 10px;
-}
-
-.landing-hero p {
-  font-size: 18px;
-  color: var(--text-muted);
-  margin-bottom: 24px;
-}
-
-.landing-buttons {
-  display: grid;
-  gap: 12px;
-  max-width: 300px;
-  margin: auto;
-}
-
-/* -----------------------------------
-   AUTH BOX (Login + Signup)
------------------------------------ */
-.auth-box, .auth-box-large {
-  max-width: 420px;
-  margin: 34px auto;
-  padding: 28px;
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.1);
-  animation: fadeIn 0.4s ease;
-}
-
-.auth-box-large {
-  max-width: 640px;
-}
-
-.auth-box h2, .auth-box-large h2 {
-  font-size: 26px;
+.text-side h1 {
+  font-size: 48px;
   font-weight: 700;
-  color: var(--blue-700);
-  margin-bottom: 10px;
+  text-align: left;
+  line-height: 54px;
 }
 
-.subtitle {
-  color: var(--text-muted);
-  margin-bottom: 14px;
-}
-
-.auth-links {
-  margin-top: 10px;
-}
-.auth-links a {
-  display: block;
-  font-size: 14px;
-  cursor: pointer;
-  color: var(--blue-600);
-  margin-top: 6px;
-}
-.auth-links a:hover { text-decoration: underline; }
-
-/* -----------------------------------
-   INPUTS
------------------------------------ */
-.input, select {
-  width: 100%;
-  padding: 12px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: #fff;
-  margin-bottom: 12px;
-  font-size: 15px;
-  color: var(--text-dark);
-}
-.input:focus {
-  outline: none;
-  border-color: var(--blue-400);
-  box-shadow: 0 0 0 3px rgba(0,120,255,0.25);
-}
-
-/* -----------------------------------
-   BUTTONS
------------------------------------ */
-.button {
-  padding: 12px 18px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: 0.25s;
-  font-size: 15px;
-}
-
-.button.primary {
-  background: linear-gradient(90deg, var(--blue-500), var(--blue-600));
-  color: #fff;
-}
-.button.primary:hover {
-  filter: brightness(1.12);
-}
-
-.button.secondary {
-  background: transparent;
-  border: 1px solid var(--blue-600);
-  color: var(--blue-700);
-}
-.button.secondary:hover {
-  background: var(--blue-100);
-}
-
-.button.small {
-  padding: 8px 14px;
-  font-size: 13px;
-}
-
-.button.danger {
-  background: var(--danger);
-  color: #fff;
-}
-
-/* -----------------------------------
-   DASHBOARD LAYOUT
------------------------------------ */
-.dashboard-layout {
-  display: flex;
-  height: 100vh;
-}
-
-/* SIDEBAR */
-.sidebar {
-  width: 250px;
-  background: var(--sidebar-bg);
-  color: #fff;
-  padding: 20px 14px;
-  display: flex;
-  flex-direction: column;
-}
-
-.sb-logo {
-  display: flex;
-  align-items: center;
-  margin-bottom: 34px;
-}
-.sb-logo img {
-  height: 40px;
-  margin-right: 10px;
-}
-.sb-logo span {
+.text-side p {
+  margin: 20px 0;
   font-size: 20px;
-  font-weight: 700;
+  text-align: left;
 }
 
-.sb-nav a {
-  padding: 12px;
-  border-radius: 10px;
-  margin-bottom: 8px;
-  display: block;
-  color: #dce9f9;
+.cta-btn {
+  background: #ff6c42;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 12px;
+  color: white;
+  font-size: 20px;
   cursor: pointer;
-}
-.sb-nav a:hover {
-  background: var(--sidebar-hover);
-}
-
-/* CONTENT */
-.content-area {
-  flex: 1;
-  padding: 28px;
-  overflow-y: auto;
-}
-
-.page-title {
-  font-size: 26px;
-  font-weight: 700;
-  color: var(--blue-700);
-  margin-bottom: 20px;
-}
-
-/* -----------------------------------
-   CARDS
------------------------------------ */
-.card {
-  background: var(--card-bg);
-  padding: 18px;
-  border-radius: 14px;
-  border: 1px solid var(--border);
-  box-shadow: 0 2px 14px rgba(0,0,0,0.05);
-  margin-bottom: 16px;
-}
-
-.stat-card h3 {
-  font-size: 16px;
-  color: var(--text-muted);
-}
-.stat-card p {
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--blue-700);
-}
-
-/* -----------------------------------
-   GRID SYSTEM
------------------------------------ */
-.grid-3 {
-  display: grid;
-  grid-template-columns: repeat(auto-fit,minmax(260px,1fr));
-  gap: 16px;
-}
-
-.two-col {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-/* -----------------------------------
-   DOCTORS LIST
------------------------------------ */
-.doctor-list, .doctor-list-big {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.doctor-card, .doctor-card-big {
-  display: flex;
-  background: #fff;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  gap: 12px;
-  align-items: center;
-}
-
-.doctor-card img, .doctor-card-big img {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-}
-
-/* -----------------------------------
-   BOOKING
------------------------------------ */
-.booking-box label {
-  font-weight: 600;
-  color: var(--text-dark);
-  margin-bottom: 6px;
-  display: block;
-}
-
-/* -----------------------------------
-   VIDEO CALL
------------------------------------ */
-.video-box {
-  display: flex;
-  gap: 14px;
-}
-video {
-  width: 48%;
-  background: #000;
-  border-radius: 12px;
-  height: 260px;
-}
-
-.video-controls {
-  margin-top: 16px;
-  display: flex;
-  gap: 12px;
-}
-
-/* -----------------------------------
-   AI CHAT
------------------------------------ */
-.ai-box {
-  margin-top: 14px;
-}
-
-.chat-area {
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  height: 320px;
-  overflow-y: auto;
-  padding: 12px;
-}
-
-.chat-input-row {
-  display: flex;
-  gap: 10px;
+  transition: 0.2s;
   margin-top: 10px;
 }
 
-.chat-suggest-row {
-  margin-top: 8px;
+.cta-btn:hover {
+  background: #ff4b1d;
+  transform: scale(1.05);
+}
+
+/* PHONE SIDE */
+.phone-img {
+  width: 220px;
+  filter: brightness(0) invert(1);
+}
+
+/* ICON ROW */
+.icon-row {
   display: flex;
-  gap: 8px;
+  justify-content: center;
+  margin-top: 50px;
+  gap: 80px;
 }
 
-/* -----------------------------------
-   TOAST
------------------------------------ */
-#toast {
-  position: fixed;
-  right: 16px;
-  bottom: 16px;
-  padding: 12px 16px;
-  background: var(--blue-600);
-  color: #fff;
-  border-radius: 10px;
-  display: none;
-  animation: popUp 0.3s ease;
-  z-index: 999;
+.icon-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-/* -----------------------------------
-   ANIMATIONS
------------------------------------ */
-@keyframes fadeIn { 
-  from { opacity: 0; transform: translateY(8px); } 
-  to { opacity: 1; transform: translateY(0); } 
-}
-@keyframes popUp {
-  from { transform: scale(0.9); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+.icon-circle {
+  width: 70px;
+  height: 70px;
+  background: white;
+  color: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 32px;
+  border-radius: 50%;
+  margin-bottom: 10px;
 }
 
-/* -----------------------------------
-   RESPONSIVE
------------------------------------ */
-@media (max-width:800px){
-  .dashboard-layout { flex-direction: column; }
-  .sidebar { width: 100%; flex-direction: row; overflow-x: auto; }
-  .sidebar a { margin-right: 12px; }
-  video { width: 100%; height: 200px; }
-  .video-box { flex-direction: column; }
+/* FOOTER */
+.footer-logo {
+  margin-top: 60px;
+  font-size: 40px;
+  font-weight: bold;
+}
+
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .main-section {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .text-side h1,
+  .text-side p {
+    text-align: center;
+  }
 }
