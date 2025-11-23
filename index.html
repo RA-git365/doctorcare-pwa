@@ -2,11 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>DoctorCare</title>
-
-  <!-- Correct CSS Path -->
-  <link rel="stylesheet" href="./css/style.css" />
+  <link rel="stylesheet" href="landing.css"/>
 </head>
 
 <body>
@@ -19,38 +17,43 @@
     <button onclick="location.href='#/patient-login'">Patient Log In</button>
   </div>
 
-  <!-- MAIN CONTENT -->
-  <div class="main-section">
-    <div class="text-side">
+  <!-- MAIN HERO SECTION -->
+  <div class="hero">
+
+    <div class="hero-text">
       <h1>Health in<br>Your Hands.</h1>
+
       <p>Just Click, Book, and<br>Feel Better.</p>
-      <button class="cta-btn">Book Appointment</button>
+
+      <button class="cta-btn" onclick="location.href='#/book-appointment'">
+        Book Appointment
+      </button>
     </div>
 
-    <div class="phone-side">
-      <!-- Use your DoctorCare phone illustration (good quality) -->
-      <img src="./assets/doctorcare-phone.png" 
-           alt="DoctorCare Phone" 
-           class="phone-img"/>
+    <div class="hero-image">
+      <img src="./assets/hero-mobile.png" alt="DoctorCare Phone Illustration"/>
     </div>
+
   </div>
 
-  <!-- ICON ROW -->
+  <!-- ICON FEATURES -->
   <div class="icon-row">
+
     <div class="icon-item">
-      <div class="icon-circle"><img src="./assets/icons/check.svg"/></div>
+      <img src="./assets/icons/check.svg" class="icon"/>
       <p>Click</p>
     </div>
 
     <div class="icon-item">
-      <div class="icon-circle"><img src="./assets/icons/calendar.svg"/></div>
+      <img src="./assets/icons/calendar.svg" class="icon"/>
       <p>Book</p>
     </div>
 
     <div class="icon-item">
-      <div class="icon-circle"><img src="./assets/icons/smile.svg"/></div>
+      <img src="./assets/icons/smile.svg" class="icon"/>
       <p>Feel Better</p>
     </div>
+
   </div>
 
   <!-- FOOTER LOGO -->
