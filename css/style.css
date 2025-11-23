@@ -1,132 +1,113 @@
-/* GLOBAL */
-* {
+/* Global */
+body {
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
-  font-family: Arial, sans-serif;
-}
-
-body {
-  background: linear-gradient(180deg, #045bb4, #0a7dd9);
+  font-family: "Inter", "Segoe UI", Roboto, Arial;
+  background: linear-gradient(180deg, #0052A3, #0077CC);
   color: white;
   text-align: center;
-  padding-bottom: 50px;
 }
 
 /* TOP BUTTONS */
 .top-buttons {
   display: flex;
   justify-content: center;
-  gap: 20px;
-  padding: 25px 0;
+  gap: 18px;
+  padding: 24px 0;
 }
 
 .top-buttons button {
   background: white;
-  color: #0a0a0a;
-  padding: 12px 22px;
+  color: #003366;
+  padding: 14px 26px;
+  font-size: 18px;
+  border-radius: 14px;
   border: none;
-  border-radius: 12px;
-  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
-  font-weight: bold;
-  transition: 0.2s;
+  box-shadow: 0px 4px 8px rgba(0,0,0,0.15);
 }
 
 .top-buttons button:hover {
-  transform: scale(1.05);
+  opacity: 0.9;
 }
 
-/* MAIN SECTION */
-.main-section {
-  margin-top: 20px;
+/* HERO MAIN SECTION */
+.hero {
   display: flex;
-  justify-content: center;
-  gap: 40px;
+  justify-content: space-between;
   align-items: center;
-  padding: 20px;
-}
-
-.text-side h1 {
-  font-size: 48px;
-  font-weight: 700;
-  text-align: left;
-  line-height: 54px;
-}
-
-.text-side p {
-  margin: 20px 0;
-  font-size: 20px;
-  text-align: left;
-}
-
-.cta-btn {
-  background: #ff6c42;
-  border: none;
-  padding: 15px 30px;
-  border-radius: 12px;
-  color: white;
-  font-size: 20px;
-  cursor: pointer;
-  transition: 0.2s;
+  padding: 40px 80px;
   margin-top: 10px;
 }
 
-.cta-btn:hover {
-  background: #ff4b1d;
-  transform: scale(1.05);
+.hero-text {
+  text-align: left;
+  max-width: 420px;
 }
 
-/* PHONE SIDE */
-.phone-img {
-  width: 220px;
-  filter: brightness(0) invert(1);
+.hero-text h1 {
+  font-size: 64px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.hero-text p {
+  font-size: 26px;
+  margin-top: 10px;
+  line-height: 1.4;
+}
+
+/* CTA Button */
+.cta-btn {
+  margin-top: 28px;
+  background: #FF6A3D;
+  color: white;
+  font-size: 22px;
+  padding: 16px 32px;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0px 6px 14px rgba(0,0,0,0.25);
+}
+
+.cta-btn:hover {
+  background: #ff5a2a;
+}
+
+/* PHONE IMAGE */
+.hero-image img {
+  width: 360px;
+  height: auto;
 }
 
 /* ICON ROW */
 .icon-row {
   display: flex;
   justify-content: center;
-  margin-top: 50px;
-  gap: 80px;
+  gap: 120px;
+  margin-top: 40px;
 }
 
 .icon-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  text-align: center;
 }
 
-.icon-circle {
-  width: 70px;
-  height: 70px;
-  background: white;
-  color: black;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 32px;
-  border-radius: 50%;
+.icon {
+  width: 52px;
+  height: 52px;
   margin-bottom: 10px;
 }
 
-/* FOOTER */
-.footer-logo {
-  margin-top: 60px;
-  font-size: 40px;
-  font-weight: bold;
+.icon-item p {
+  font-size: 24px;
 }
 
-
-/* RESPONSIVE */
-@media (max-width: 900px) {
-  .main-section {
-    flex-direction: column;
-    text-align: center;
-  }
-  
-  .text-side h1,
-  .text-side p {
-    text-align: center;
-  }
+/* FOOTER LOGO */
+.footer-logo {
+  margin-top: 60px;
+  font-size: 42px;
+  font-weight: 700;
+  padding-bottom: 40px;
 }
