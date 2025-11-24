@@ -1,63 +1,23 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>DoctorCare</title>
-  <link rel="stylesheet" href="landing.css"/>
-</head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
 
+  <title>DoctorCare</title>
+
+  <!-- MAIN CSS -->
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
 <body>
 
-  <!-- TOP BUTTONS -->
-  <div class="top-buttons">
-    <button onclick="location.href='#/doctor-signup'">Doctor Sign Up</button>
-    <button onclick="location.href='#/doctor-login'">Doctor Log In</button>
-    <button onclick="location.href='#/patient-signup'">Patient Sign Up</button>
-    <button onclick="location.href='#/patient-login'">Patient Log In</button>
-  </div>
+  <!-- TOAST -->
+  <div id="toast" class="toast hidden"></div>
 
-  <!-- MAIN HERO SECTION -->
-  <div class="hero">
+  <!-- MAIN APP CONTAINER (Controlled by app.js) -->
+  <div id="page-container"></div>
 
-    <div class="hero-text">
-      <h1>Health in<br>Your Hands.</h1>
-
-      <p>Just Click, Book, and<br>Feel Better.</p>
-
-      <button class="cta-btn" onclick="location.href='#/book-appointment'">
-        Book Appointment
-      </button>
-    </div>
-
-    <div class="hero-image">
-      <img src="./assets/hero-mobile.png" alt="DoctorCare Phone Illustration"/>
-    </div>
-
-  </div>
-
-  <!-- ICON FEATURES -->
-  <div class="icon-row">
-
-    <div class="icon-item">
-      <img src="./assets/icons/check.svg" class="icon"/>
-      <p>Click</p>
-    </div>
-
-    <div class="icon-item">
-      <img src="./assets/icons/calendar.svg" class="icon"/>
-      <p>Book</p>
-    </div>
-
-    <div class="icon-item">
-      <img src="./assets/icons/smile.svg" class="icon"/>
-      <p>Feel Better</p>
-    </div>
-
-  </div>
-
-  <!-- FOOTER LOGO -->
-  <h1 class="footer-logo">DoctorCare</h1>
-
+  <!-- APP JS -->
+  <script src="./js/app.js"></script>
 </body>
 </html>
