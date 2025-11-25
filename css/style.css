@@ -1,12 +1,17 @@
 /* ===========================
-   LANDING PAGE (REWRITTEN)
+   LANDING PAGE — FINAL FIXED
    =========================== */
 
 .landing-wrapper {
+  width: 100%;
   min-height: 100vh;
   background: linear-gradient(180deg, #0052A3, #0077CC);
   color: #fff;
+  display: flex;
+  flex-direction: column;
   overflow: visible !important;
+  position: relative;
+  z-index: 5; /* prevents dashboard CSS override */
 }
 
 /* TOP BUTTONS */
@@ -16,6 +21,7 @@
   flex-wrap: wrap;
   gap: 16px;
   padding: 24px 0 12px;
+  z-index: 10;
 }
 
 .top-buttons button {
@@ -29,22 +35,25 @@
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(0,0,0,0.18);
 }
-.top-buttons button:hover {
-  opacity: 0.9;
-}
+.top-buttons button:hover { opacity: 0.9; }
 
-/* HERO SECTION */
+/* HERO */
 .landing-hero {
+  width: 100%;
+  max-width: 1400px;
+  margin: auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 40px 80px;
+  gap: 50px;
+  padding: 50px 80px;
   overflow: visible !important;
 }
 
+/* LEFT TEXT */
 .hero-left {
   text-align: left;
-  max-width: 460px;
+  max-width: 500px;
 }
 
 .hero-left h1 {
@@ -61,8 +70,7 @@
 }
 
 /* CTA BUTTON */
-.button-primary-landing,
-.cta-btn {
+.button-primary-landing {
   margin-top: 26px;
   background: #ff6a3d;
   color: #ffffff;
@@ -74,17 +82,16 @@
   font-weight: 600;
   box-shadow: 0 6px 16px rgba(0,0,0,0.28);
 }
-.button-primary-landing:hover {
-  background: #ff5a2a;
-}
+.button-primary-landing:hover { background: #ff5a2a; }
 
-/* PHONE IMAGE — FIXED (Never cropped & always visible!) */
+/* RIGHT IMAGE */
 .hero-right {
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 350px;
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow: visible !important;
+  overflow: visible;
 }
 
 .hero-right img {
@@ -93,7 +100,8 @@
   height: auto;
   display: block;
   object-fit: contain !important;
-  object-position: center;
+  position: relative;
+  z-index: 20;
 }
 
 /* ICON ROW */
@@ -103,6 +111,7 @@
   flex-wrap: wrap;
   gap: 120px;
   margin-top: 40px;
+  z-index: 15;
 }
 
 .icon-item {
@@ -119,6 +128,7 @@
   justify-content: center;
   margin: 0 auto 10px;
 }
+
 .icon-circle img {
   width: 34px;
   height: 34px;
@@ -139,51 +149,31 @@
 }
 
 /* ===========================
-   RESPONSIVE FIXES
+   RESPONSIVE
    =========================== */
 
 @media (max-width: 1020px) {
   .landing-hero {
-    padding: 40px 40px;
-  }
-}
-
-@media (max-width: 900px) {
-  .landing-hero {
     flex-direction: column;
-    padding: 32px 20px;
+    padding: 40px 40px;
+    gap: 30px;
     text-align: center;
   }
 
-  .hero-left h1 {
-    font-size: 48px;
+  .hero-left {
+    max-width: 100%;
+    text-align: center;
   }
 
-  .hero-left .lead {
-    font-size: 20px;
-  }
+  .hero-left h1 { font-size: 48px; }
 
-  .hero-right img {
-    max-width: 320px;
-    margin-top: 20px;
-  }
+  .hero-right img { max-width: 330px; }
 
-  .icon-row {
-    gap: 60px;
-  }
+  .icon-row { gap: 70px; }
 }
 
 @media (max-width: 600px) {
-  .hero-left h1 {
-    font-size: 36px;
-  }
-
-  .hero-right img {
-    max-width: 260px;
-  }
-
-  .icon-row {
-    gap: 40px;
-    margin-top: 32px;
-  }
+  .hero-left h1 { font-size: 36px; }
+  .hero-right img { max-width: 260px; }
+  .icon-row { gap: 40px; margin-top: 32px; }
 }
