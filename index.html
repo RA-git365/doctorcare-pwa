@@ -2,20 +2,72 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <title>DoctorCare</title>
 
   <!-- MAIN CSS -->
   <link rel="stylesheet" href="./css/style.css" />
 </head>
+
 <body>
 
-  <!-- TOAST -->
+  <!-- GLOBAL TOAST MESSAGE -->
   <div id="toast" class="toast hidden"></div>
 
-  <!-- MAIN APP CONTAINER (Controlled by app.js) -->
-  <div id="page-container"></div>
+  <!-- ROUTER CONTAINER -->
+  <div id="page-container">
+
+    <!-- =======================
+         LANDING PAGE VIEW
+         (Default Loaded First)
+    ========================= -->
+    <div id="landing" class="landing-page">
+
+      <div class="landing-wrapper">
+
+        <!-- TOP BUTTONS -->
+        <div class="top-buttons">
+          <button onclick="navigateTo('login')">Patient Login</button>
+          <button onclick="navigateTo('doctor-login')">Doctor Login</button>
+        </div>
+
+        <!-- HERO SECTION -->
+        <section class="landing-hero">
+          <div class="hero-left">
+            <h1>DoctorCare</h1>
+            <p class="lead">Book appointments, consult trusted doctors, and manage medical records securely.</p>
+            <button class="button-primary-landing" onclick="navigateTo('patient-signup')">Get Started</button>
+          </div>
+
+          <div class="hero-right">
+            <img src="./images/hero-doctor.png" alt="DoctorCare Illustration" />
+          </div>
+        </section>
+
+        <!-- FEATURE ICON ROW -->
+        <section class="icon-row">
+          <div class="icon-item">
+            <div class="icon-circle"><img src="./images/icons/stethoscope.png" /></div>
+            <p>Expert Doctors</p>
+          </div>
+          <div class="icon-item">
+            <div class="icon-circle"><img src="./images/icons/secure.png" /></div>
+            <p>Data Security</p>
+          </div>
+          <div class="icon-item">
+            <div class="icon-circle"><img src="./images/icons/calendar.png" /></div>
+            <p>Easy Booking</p>
+          </div>
+        </section>
+
+        <!-- FOOTER -->
+        <div class="footer-logo">DoctorCare</div>
+
+      </div>
+    </div>
+
+  </div><!-- end page-container -->
 
   <!-- APP JS -->
   <script src="./js/app.js"></script>
