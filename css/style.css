@@ -1,8 +1,8 @@
 /* ===========================
-   LANDING PAGE — FINAL FIXED
+   LANDING PAGE — FIXED & ISOLATED
    =========================== */
 
-.landing-wrapper {
+.landing-page .landing-wrapper {
   width: 100%;
   min-height: 100vh;
   background: linear-gradient(180deg, #0052A3, #0077CC);
@@ -11,11 +11,11 @@
   flex-direction: column;
   overflow: visible !important;
   position: relative;
-  z-index: 5; /* prevents dashboard CSS override */
+  z-index: 5;
 }
 
 /* TOP BUTTONS */
-.top-buttons {
+.landing-page .top-buttons {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
@@ -24,7 +24,7 @@
   z-index: 10;
 }
 
-.top-buttons button {
+.landing-page .top-buttons button {
   background: #ffffff;
   color: #003366;
   padding: 12px 22px;
@@ -35,10 +35,10 @@
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(0,0,0,0.18);
 }
-.top-buttons button:hover { opacity: 0.9; }
+.landing-page .top-buttons button:hover { opacity: 0.9; }
 
 /* HERO */
-.landing-hero {
+.landing-page .landing-hero {
   width: 100%;
   max-width: 1400px;
   margin: auto;
@@ -47,30 +47,29 @@
   align-items: center;
   gap: 50px;
   padding: 50px 80px;
-  overflow: visible !important;
 }
 
 /* LEFT TEXT */
-.hero-left {
+.landing-page .hero-left {
   text-align: left;
   max-width: 500px;
 }
 
-.hero-left h1 {
+.landing-page .hero-left h1 {
   font-size: 64px;
   font-weight: 700;
   line-height: 1.1;
   margin: 0 0 10px;
 }
 
-.hero-left .lead {
+.landing-page .hero-left .lead {
   font-size: 24px;
   margin: 0;
   line-height: 1.4;
 }
 
 /* CTA BUTTON */
-.button-primary-landing {
+.landing-page .button-primary-landing {
   margin-top: 26px;
   background: #ff6a3d;
   color: #ffffff;
@@ -82,43 +81,38 @@
   font-weight: 600;
   box-shadow: 0 6px 16px rgba(0,0,0,0.28);
 }
-.button-primary-landing:hover { background: #ff5a2a; }
+.landing-page .button-primary-landing:hover { background: #ff5a2a; }
 
 /* RIGHT IMAGE */
-.hero-right {
+.landing-page .hero-right {
   flex: 1 1 auto;
   min-width: 350px;
   display: flex;
   justify-content: center;
-  align-items: center;
-  overflow: visible;
 }
 
-.hero-right img {
+.landing-page .hero-right img {
   width: 100%;
   max-width: 420px;
-  height: auto;
-  display: block;
   object-fit: contain !important;
   position: relative;
   z-index: 20;
 }
 
 /* ICON ROW */
-.icon-row {
+.landing-page .icon-row {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
   gap: 120px;
   margin-top: 40px;
-  z-index: 15;
 }
 
-.icon-item {
+.landing-page .icon-item {
   text-align: center;
 }
 
-.icon-circle {
+.landing-page .icon-circle {
   width: 60px;
   height: 60px;
   border-radius: 50%;
@@ -129,18 +123,16 @@
   margin: 0 auto 10px;
 }
 
-.icon-circle img {
+.landing-page .icon-circle img {
   width: 34px;
-  height: 34px;
 }
 
-.icon-item p {
+.landing-page .icon-item p {
   font-size: 22px;
-  margin: 0;
 }
 
 /* FOOTER LOGO */
-.footer-logo {
+.landing-page .footer-logo {
   margin-top: 60px;
   font-size: 42px;
   font-weight: 700;
@@ -148,32 +140,26 @@
   text-align: center;
 }
 
+
 /* ===========================
-   RESPONSIVE
+   RESPONSIVE FIXED
    =========================== */
 
 @media (max-width: 1020px) {
-  .landing-hero {
+  .landing-page .landing-hero {
     flex-direction: column;
     padding: 40px 40px;
     gap: 30px;
     text-align: center;
   }
 
-  .hero-left {
-    max-width: 100%;
-    text-align: center;
-  }
-
-  .hero-left h1 { font-size: 48px; }
-
-  .hero-right img { max-width: 330px; }
-
-  .icon-row { gap: 70px; }
+  .landing-page .hero-left h1 { font-size: 48px; }
+  .landing-page .hero-right img { max-width: 330px; }
+  .landing-page .icon-row { gap: 70px; }
 }
 
 @media (max-width: 600px) {
-  .hero-left h1 { font-size: 36px; }
-  .hero-right img { max-width: 260px; }
-  .icon-row { gap: 40px; margin-top: 32px; }
+  .landing-page .hero-left h1 { font-size: 36px; }
+  .landing-page .hero-right img { max-width: 260px; }
+  .landing-page .icon-row { gap: 40px; margin-top: 32px; }
 }
