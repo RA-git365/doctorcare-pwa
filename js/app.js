@@ -3,8 +3,6 @@
 // Frontend-only (localStorage + mock flows)
 // Optimized for Android + iOS + iPad (PWA / mobile browsers)
 // ===============================================
-'use strict';
-
 console.log('[DoctorCare] app.js loading...');
 
 // -----------------------
@@ -20,7 +18,7 @@ const IS_STANDALONE =
 // -----------------------
 // Simple DOM helpers
 // -----------------------
-const $ = (id) => document.getElementById(id);
+const $ = id => document.getElementById(id);
 const appRoot = document.getElementById('page-container');
 const STORE_KEY = 'doctorcare_store_v2';
 
@@ -36,7 +34,6 @@ function loadStore() {
     return {};
   }
 }
-
 function saveStore(s) {
   try {
     localStorage.setItem(STORE_KEY, JSON.stringify(s));
@@ -46,14 +43,12 @@ function saveStore(s) {
 }
 
 const store = loadStore();
-if (!Array.isArray(store.doctors)) store.doctors = [];
-if (!Array.isArray(store.patients)) store.patients = [];
-if (!Array.isArray(store.appointments)) store.appointments = [];
-if (!Array.isArray(store.prescriptions)) store.prescriptions = [];
-if (!Array.isArray(store.bills)) store.bills = [];
-if (!store.session || typeof store.session !== 'object') {
-  store.session = { role: null, id: null };
-}
+if (!store.doctors) store.doctors = [];
+if (!store.patients) store.patients = [];
+if (!store.appointments) store.appointments = [];
+if (!store.prescriptions) store.prescriptions = [];
+if (!store.bills) store.bills = [];
+if (!store.session) store.session = { role: null, id: null };
 saveStore(store);
 
 // -----------------------
@@ -62,11 +57,10 @@ saveStore(store);
 const uid = () =>
   Math.random().toString(36).slice(2) + Date.now().toString(36);
 
-const hash = (s) => {
+const hash = s => {
   try {
     return btoa(unescape(encodeURIComponent(s || '')));
-  } catch (e) {
-    console.warn('Hashing error', e);
+  } catch {
     return s || '';
   }
 };
@@ -87,24 +81,18 @@ function toast(m) {
 
 function escapeHtml(s) {
   if (!s) return '';
-  return s.replace(/[&<>"']/g, (m) => (
-    {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
-    }[m]
-  ));
+  return s.replace(/[&<>"']/g, m => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[m]));
 }
 
 // Distance (km) between two lat/lng points (Haversine)
 function distanceKm(lat1, lon1, lat2, lon2) {
-  if (
-    lat1 == null || lon1 == null ||
-    lat2 == null || lon2 == null
-  ) return null;
-
+  if (lat1 == null || lon1 == null || lat2 == null || lon2 == null) return null;
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
@@ -137,13 +125,13 @@ function endSession() {
 
 function currentDoctor() {
   return store.session.role === 'doctor'
-    ? store.doctors.find((d) => d.id === store.session.id) || null
+    ? store.doctors.find(d => d.id === store.session.id)
     : null;
 }
 
 function currentPatient() {
   return store.session.role === 'patient'
-    ? store.patients.find((p) => p.id === store.session.id) || null
+    ? store.patients.find(p => p.id === store.session.id)
     : null;
 }
 
@@ -153,8 +141,12 @@ function currentPatient() {
 function render(html) {
   if (!appRoot) return;
   appRoot.innerHTML = html;
-  // mobile-friendly scroll reset (use valid values)
-  window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  // mobile-friendly scroll reset
+  try {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  } catch {
+    window.scrollTo(0, 0);
+  }
 }
 
 function layoutLanding(content) {
@@ -168,23 +160,23 @@ function layoutAuth(content) {
 function layoutDashboard(content, role) {
   const sidebarLinks = role === 'doctor'
     ? `
-      <a onclick="navigate('#/doctor-dashboard')">Dashboard</a>
-      <a onclick="navigate('#/appointments')">Appointments</a>
-      <a onclick="navigate('#/prescriptions')">Prescriptions</a>
-      <a onclick="navigate('#/billing')">Billing</a>
-      <a onclick="navigate('#/video-call')">Video Call</a>
-      <a onclick="navigate('#/profile')">My Profile</a>
-      <a onclick="endSession()">Logout</a>
-    `
+    <a onclick="navigate('#/doctor-dashboard')">Dashboard</a>
+    <a onclick="navigate('#/appointments')">Appointments</a>
+    <a onclick="navigate('#/prescriptions')">Prescriptions</a>
+    <a onclick="navigate('#/billing')">Billing</a>
+    <a onclick="navigate('#/video-call')">Video Call</a>
+    <a onclick="navigate('#/profile')">My Profile</a>
+    <a onclick="endSession()">Logout</a>
+  `
     : `
-      <a onclick="navigate('#/patient-dashboard')">Dashboard</a>
-      <a onclick="navigate('#/doctors-near-me')">Doctors Near Me</a>
-      <a onclick="navigate('#/appointments')">Appointments</a>
-      <a onclick="navigate('#/prescriptions')">Prescriptions</a>
-      <a onclick="navigate('#/billing')">Billing</a>
-      <a onclick="navigate('#/profile')">My Profile</a>
-      <a onclick="endSession()">Logout</a>
-    `;
+    <a onclick="navigate('#/patient-dashboard')">Dashboard</a>
+    <a onclick="navigate('#/doctors-near-me')">Doctors Near Me</a>
+    <a onclick="navigate('#/appointments')">Appointments</a>
+    <a onclick="navigate('#/prescriptions')">Prescriptions</a>
+    <a onclick="navigate('#/billing')">Billing</a>
+    <a onclick="navigate('#/profile')">My Profile</a>
+    <a onclick="endSession()">Logout</a>
+  `;
 
   render(`
     <div class="dashboard-layout">
@@ -224,29 +216,26 @@ const ROUTES = {
 };
 
 function navigate(hash) {
-  window.location.hash = hash;
+  location.hash = hash;
 }
 
 function router() {
-  const h = window.location.hash || '#/';
+  const h = location.hash || '#/';
   const fn = ROUTES[h] || ROUTES['#/'];
   try {
     fn();
   } catch (e) {
     console.error('Router error:', e);
-    try {
-      ROUTES['#/']();
-    } catch (e2) {
-      console.error('Landing route error:', e2);
-    }
+    ROUTES['#/']();
   }
 }
 
+// iOS sometimes fires load later; DOMContentLoaded is more reliable
 window.addEventListener('hashchange', router);
 window.addEventListener('DOMContentLoaded', router);
 
 // -----------------------
-// Landing page
+// Landing page (matches your design)
 // -----------------------
 function routeLanding() {
   layoutLanding(`
@@ -264,27 +253,21 @@ function routeLanding() {
         <button class="button-primary-landing" onclick="handleLandingBook()">Book Appointment</button>
       </div>
       <div class="hero-right">
-        <img src="./assets/doctorcare-landing-hero.png" alt="DoctorCare Phone">
+        <img src="./assets/doctorcare-landing-hero.png" alt="DoctorCare Phone" />
       </div>
     </div>
 
     <section class="icon-row">
       <div class="icon-item">
-        <div class="icon-circle">
-          <img src="./assets/icons/check.png" alt="Click">
-        </div>
+        <div class="icon-circle"><img src="./assets/icons/check.png" alt="Click"></div>
         <p>Click</p>
       </div>
       <div class="icon-item">
-        <div class="icon-circle">
-          <img src="./assets/icons/calendar.png" alt="Book">
-        </div>
+        <div class="icon-circle"><img src="./assets/icons/calendar.png" alt="Book"></div>
         <p>Book</p>
       </div>
       <div class="icon-item">
-        <div class="icon-circle">
-          <img src="./assets/icons/smile.png" alt="Feel Better">
-        </div>
+        <div class="icon-circle"><img src="./assets/icons/smile.png" alt="Feel Better"></div>
         <p>Feel Better</p>
       </div>
     </section>
@@ -336,7 +319,7 @@ function doDoctorSignup() {
 
   if (!name || !email || !mobile || !pass || !confirm) return toast('Fill all fields');
   if (pass !== confirm) return toast('Passwords do not match');
-  if (store.doctors.some((d) => d.email === email)) return toast('Email already registered');
+  if (store.doctors.some(d => d.email === email)) return toast('Email already registered');
 
   const d = {
     id: uid(),
@@ -387,7 +370,7 @@ function doPatientSignup() {
 
   if (!name || !email || !mobile || !pass || !confirm) return toast('Fill all fields');
   if (pass !== confirm) return toast('Passwords do not match');
-  if (store.patients.some((p) => p.email === email)) return toast('Email already registered');
+  if (store.patients.some(p => p.email === email)) return toast('Email already registered');
 
   const p = {
     id: uid(),
@@ -428,7 +411,7 @@ function routeDoctorLogin() {
 function doDoctorLogin() {
   const email = $('dl_email').value.trim();
   const pass = hash($('dl_pass').value);
-  const d = store.doctors.find((x) => x.email === email && x.password === pass);
+  const d = store.doctors.find(x => x.email === email && x.password === pass);
   if (!d) return toast('Invalid credentials');
 
   setSession('doctor', d.id);
@@ -460,7 +443,7 @@ function routePatientLogin() {
 function doPatientLogin() {
   const email = $('pl_email').value.trim();
   const pass = hash($('pl_pass').value);
-  const p = store.patients.find((x) => x.email === email && x.password === pass);
+  const p = store.patients.find(x => x.email === email && x.password === pass);
   if (!p) return toast('Invalid credentials');
 
   setSession('patient', p.id);
@@ -575,9 +558,10 @@ function routeDoctorsNearMe() {
   const p = currentPatient();
   if (!p) return navigate('#/patient-login');
 
+  // Try to get patient location (auto GPS)
   if (navigator.geolocation && (p.lat == null || p.lng == null)) {
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      pos => {
         p.lat = pos.coords.latitude;
         p.lng = pos.coords.longitude;
         saveStore(store);
@@ -599,7 +583,7 @@ function routeDoctorsNearMe() {
 }
 
 function renderDoctorsNearMeList(p) {
-  const docs = store.doctors.map((d) => {
+  const docs = store.doctors.map(d => {
     const dist =
       p.lat != null && p.lng != null && d.lat != null && d.lng != null
         ? distanceKm(p.lat, p.lng, d.lat, d.lng)
@@ -619,29 +603,29 @@ function renderDoctorsNearMeList(p) {
   });
 
   const list =
-    docs.map((d) => `
-      <div class="doctor-card-big ${d.dist != null && d.dist <= 5 ? 'highlight' : ''}">
-        <img src="./assets/default-doctor.png" alt="Doctor">
-        <div class="doc-meta">
-          <h3>Dr. ${escapeHtml(d.name)}</h3>
-          <p>${escapeHtml(d.spec || 'Specialist')} • ⭐ ${d.avgRating.toFixed(1)} • ${
-            d.dist != null ? d.dist + ' km away' : 'Distance N/A'
-          }</p>
-          <p>${escapeHtml(d.clinic || 'Clinic')}</p>
-          <div class="doc-actions">
-            <button class="button small" onclick="startBooking('${d.id}')">Book</button>
-          </div>
+    docs.map(d => `
+    <div class="doctor-card-big ${d.dist != null && d.dist <= 5 ? 'highlight' : ''}">
+      <img src="./assets/default-doctor.png" alt="Doctor">
+      <div class="doc-meta">
+        <h3>Dr. ${escapeHtml(d.name)}</h3>
+        <p>${escapeHtml(d.spec || 'Specialist')} • ⭐ ${d.avgRating.toFixed(1)} • ${
+          d.dist != null ? d.dist + ' km away' : 'Distance N/A'
+        }</p>
+        <p>${escapeHtml(d.clinic || 'Clinic')}</p>
+        <div class="doc-actions">
+          <button class="button small" onclick="startBooking('${d.id}')">Book</button>
         </div>
       </div>
-    `).join('') || '<p>No doctors available yet.</p>';
+    </div>
+  `).join('') || '<p>No doctors available yet.</p>';
 
   layoutDashboard(
     `
-      <h2 class="page-title">Doctors Near You</h2>
-      <div class="card">
-        ${list}
-      </div>
-    `,
+    <h2 class="page-title">Doctors Near You</h2>
+    <div class="card">
+      ${list}
+    </div>
+  `,
     'patient'
   );
 }
@@ -660,7 +644,7 @@ function startBooking(docId) {
 function dailyEarningsForDoctor(doctorId) {
   const today = new Date().toISOString().slice(0, 10);
   return store.bills
-    .filter((b) => b.doctorId === doctorId && b.date && b.date.startsWith(today))
+    .filter(b => b.doctorId === doctorId && b.date && b.date.startsWith(today))
     .reduce((sum, b) => sum + (b.totalAmount || 0), 0);
 }
 
@@ -668,53 +652,48 @@ function routeDoctorDashboard() {
   const d = currentDoctor();
   if (!d) return navigate('#/doctor-login');
 
-  const myAppts = store.appointments.filter((a) => a.doctorId === d.id);
-  const uniquePatients = new Set(myAppts.map((a) => a.patientId)).size;
+  const todayAppts = store.appointments.filter(a => a.doctorId === d.id);
+  const uniquePatients = new Set(todayAppts.map(a => a.patientId)).size;
   const todaysEarn = dailyEarningsForDoctor(d.id);
 
   layoutDashboard(
     `
-      <h2 class="page-title">Welcome, Dr. ${escapeHtml(d.name)}</h2>
-      <div class="grid-3">
-        <div class="card stat-card">
-          <h3>Today's Appointments</h3><p>${myAppts.length}</p>
-        </div>
-        <div class="card stat-card">
-          <h3>My Patients</h3><p>${uniquePatients}</p>
-        </div>
-        <div class="card stat-card">
-          <h3>Today's Earnings</h3><p>₹${todaysEarn}</p>
-        </div>
-      </div>
+    <h2 class="page-title">Welcome, Dr. ${escapeHtml(d.name)}</h2>
+    <div class="grid-3">
+      <div class="card stat-card"><h3>Today's Appointments</h3><p>${todayAppts.length}</p></div>
+      <div class="card stat-card"><h3>My Patients</h3><p>${uniquePatients}</p></div>
+      <div class="card stat-card"><h3>Today's Earnings</h3><p>₹${todaysEarn}</p></div>
+    </div>
 
-      <div class="two-col">
-        <div class="card">
-          <h3>Upcoming Appointments</h3>
-          ${
-            myAppts.slice(0, 6).map((a) => {
-              const p = store.patients.find((x) => x.id === a.patientId);
+    <div class="two-col">
+      <div class="card">
+        <h3>Upcoming Appointments</h3>
+        ${
+          todayAppts
+            .slice(0, 6)
+            .map(a => {
+              const p = store.patients.find(x => x.id === a.patientId);
               const label = p ? p.name : 'Patient';
-              return `
-                <div class="appt-row">
-                  <strong>${escapeHtml(label)}</strong>
-                  <div>${escapeHtml(a.time || '')}</div>
-                  <button class="button small" onclick="openAppointmentDetails('${a.id}')">Open</button>
-                </div>
-              `;
-            }).join('') || '<p>No appointments.</p>'
-          }
-        </div>
+              return `<div class="appt-row">
+                <strong>${escapeHtml(label)}</strong>
+                <div>${escapeHtml(a.time || '')}</div>
+                <button class="button small" onclick="openAppointmentDetails('${a.id}')">Open</button>
+              </div>`;
+            })
+            .join('') || '<p>No appointments.</p>'
+        }
+      </div>
 
-        <div class="card">
-          <h3>AI Assistant (Demo)</h3>
-          <div id="chatbox" class="chat-area"></div>
-          <div class="chat-input-row">
-            <input id="chatInput" class="input" placeholder="Ask DoctorCare...">
-            <button class="button primary" onclick="chatSend()">Send</button>
-          </div>
+      <div class="card">
+        <h3>AI Assistant (Demo)</h3>
+        <div id="chatbox" class="chat-area"></div>
+        <div class="chat-input-row">
+          <input id="chatInput" class="input" placeholder="Ask DoctorCare...">
+          <button class="button primary" onclick="chatSend()">Send</button>
         </div>
       </div>
-    `,
+    </div>
+  `,
     'doctor'
   );
 
@@ -728,55 +707,56 @@ function routePatientDashboard() {
   const p = currentPatient();
   if (!p) return navigate('#/patient-login');
 
-  const myAppts = store.appointments.filter((a) => a.patientId === p.id);
-  const myPres = store.prescriptions.filter((pr) => pr.patientId === p.id);
-  const myBills = store.bills.filter((b) => b.patientId === p.id);
+  const myAppts = store.appointments.filter(a => a.patientId === p.id);
+  const myPres = store.prescriptions.filter(pr => pr.patientId === p.id);
+  const myBills = store.bills.filter(b => b.patientId === p.id);
 
   layoutDashboard(
     `
-      <h2 class="page-title">Welcome, ${escapeHtml(p.name)}</h2>
-      <div class="grid-3">
-        <div class="card stat-card"><h3>Upcoming Appointments</h3><p>${myAppts.length}</p></div>
-        <div class="card stat-card"><h3>Prescriptions</h3><p>${myPres.length}</p></div>
-        <div class="card stat-card"><h3>Bills</h3><p>${myBills.length}</p></div>
-      </div>
+    <h2 class="page-title">Welcome, ${escapeHtml(p.name)}</h2>
+    <div class="grid-3">
+      <div class="card stat-card"><h3>Upcoming Appointments</h3><p>${myAppts.length}</p></div>
+      <div class="card stat-card"><h3>Prescriptions</h3><p>${myPres.length}</p></div>
+      <div class="card stat-card"><h3>Bills</h3><p>${myBills.length}</p></div>
+    </div>
 
+    <div class="card">
+      <button class="button primary" onclick="navigate('#/doctors-near-me')">Doctors Near Me</button>
+      <button class="button secondary" style="margin-left:8px" onclick="navigate('#/patient-profile-complete')">Complete Profile</button>
+    </div>
+
+    <div class="two-col">
       <div class="card">
-        <button class="button primary" onclick="navigate('#/doctors-near-me')">Doctors Near Me</button>
-        <button class="button secondary" style="margin-left:8px" onclick="navigate('#/patient-profile-complete')">
-          Complete Profile
-        </button>
-      </div>
-
-      <div class="two-col">
-        <div class="card">
-          <h3>Quick Doctors</h3>
-          <div class="doctor-preview">
-            ${
-              store.doctors.slice(0, 4).map((d) => `
+        <h3>Quick Doctors</h3>
+        <div class="doctor-preview">
+          ${
+            store.doctors
+              .slice(0, 4)
+              .map(d => `
                 <div class="doc-preview">
-                  <img src="./assets/default-doctor.png" alt="Doctor">
+                  <img src="./assets/default-doctor.png">
                   <div>
                     <strong>Dr. ${escapeHtml(d.name)}</strong>
                     <div>${escapeHtml(d.spec || '')}</div>
                   </div>
                   <button class="button small" onclick="startBooking('${d.id}')">Book</button>
                 </div>
-              `).join('') || '<p>No doctors yet.</p>'
-            }
-          </div>
-        </div>
-
-        <div class="card">
-          <h3>AI Assistant (Demo)</h3>
-          <div id="chatbox" class="chat-area"></div>
-          <div class="chat-input-row">
-            <input id="chatInput" class="input" placeholder="Ask DoctorCare...">
-            <button class="button primary" onclick="chatSend()">Send</button>
-          </div>
+          `)
+              .join('') || '<p>No doctors yet.</p>'
+          }
         </div>
       </div>
-    `,
+
+      <div class="card">
+        <h3>AI Assistant (Demo)</h3>
+        <div id="chatbox" class="chat-area"></div>
+        <div class="chat-input-row">
+          <input id="chatInput" class="input" placeholder="Ask DoctorCare...">
+          <button class="button primary" onclick="chatSend()">Send</button>
+        </div>
+      </div>
+    </div>
+  `,
     'patient'
   );
 
@@ -791,29 +771,32 @@ function routePatientDashboard() {
 // -----------------------
 function routeBookAppointment() {
   const docs = store.doctors
-    .map((d) =>
-      `<option value="${d.id}">Dr. ${escapeHtml(d.name)} — ${escapeHtml(d.spec || '')}</option>`
+    .map(
+      d =>
+        `<option value="${d.id}">Dr. ${escapeHtml(d.name)} — ${escapeHtml(
+          d.spec || ''
+        )}</option>`
     )
     .join('');
   const pats = store.patients
-    .map((p) => `<option value="${p.id}">${escapeHtml(p.name)}</option>`)
+    .map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`)
     .join('');
 
   const role = store.session.role || 'patient';
 
   layoutDashboard(
     `
-      <h2 class="page-title">Book Appointment</h2>
-      <div class="card booking-box">
-        <label>Doctor</label>
-        <select id="bk_doc" class="input">${docs}</select>
-        <label>Patient</label>
-        <select id="bk_pat" class="input">${pats}</select>
-        <label>Date & Time</label>
-        <input id="bk_time" class="input" placeholder="YYYY-MM-DD HH:MM">
-        <button class="button primary" onclick="saveAppointmentPro()">Save</button>
-      </div>
-    `,
+    <h2 class="page-title">Book Appointment</h2>
+    <div class="card booking-box">
+      <label>Doctor</label>
+      <select id="bk_doc" class="input">${docs}</select>
+      <label>Patient</label>
+      <select id="bk_pat" class="input">${pats}</select>
+      <label>Date & Time</label>
+      <input id="bk_time" class="input" placeholder="YYYY-MM-DD HH:MM">
+      <button class="button primary" onclick="saveAppointmentPro()">Save</button>
+    </div>
+  `,
     role
   );
 }
@@ -850,64 +833,60 @@ function routeAppointmentsList() {
   const isDoctor = role === 'doctor';
   const list =
     store.appointments
-      .filter((a) => (isDoctor ? a.doctorId === id : a.patientId === id))
-      .map((a) => {
-        const doc = store.doctors.find((d) => d.id === a.doctorId);
-        const pat = store.patients.find((p) => p.id === a.patientId);
+      .filter(a => (isDoctor ? a.doctorId === id : a.patientId === id))
+      .map(a => {
+        const doc = store.doctors.find(d => d.id === a.doctorId);
+        const pat = store.patients.find(p => p.id === a.patientId);
         const label = isDoctor
-          ? (pat ? pat.name : 'Patient')
-          : (doc ? 'Dr. ' + doc.name : 'Doctor');
-        return `
-          <div class="appt-row ${a.emergency ? 'emergency' : ''}">
-            <strong>${escapeHtml(label)}</strong>
-            <div>${escapeHtml(a.time || '')} • ${a.emergency ? 'Emergency' : 'Normal'}</div>
-            <button class="button small" onclick="openAppointmentDetails('${a.id}')">Open</button>
-          </div>
-        `;
+          ? pat
+            ? pat.name
+            : 'Patient'
+          : doc
+          ? 'Dr. ' + doc.name
+          : 'Doctor';
+        return `<div class="appt-row ${a.emergency ? 'emergency' : ''}">
+        <strong>${escapeHtml(label)}</strong>
+        <div>${escapeHtml(a.time || '')} • ${a.emergency ? 'Emergency' : 'Normal'}</div>
+        <button class="button small" onclick="openAppointmentDetails('${a.id}')">Open</button>
+      </div>`;
       })
       .join('') || '<p>No appointments.</p>';
 
   layoutDashboard(
     `
-      <h2 class="page-title">Appointments</h2>
-      <div class="card">${list}</div>
-    `,
+    <h2 class="page-title">Appointments</h2>
+    <div class="card">${list}</div>
+  `,
     role
   );
 }
 
 function openAppointmentDetails(apptId) {
-  const a = store.appointments.find((x) => x.id === apptId);
+  const a = store.appointments.find(x => x.id === apptId);
   if (!a) return toast('Appointment not found');
 
-  const doc = store.doctors.find((d) => d.id === a.doctorId);
-  const pat = store.patients.find((p) => p.id === a.patientId);
+  const doc = store.doctors.find(d => d.id === a.doctorId);
+  const pat = store.patients.find(p => p.id === a.patientId);
   const role = store.session.role || 'doctor';
 
   layoutDashboard(
     `
-      <h2 class="page-title">Appointment Details</h2>
-      <div class="card">
-        <p><strong>Doctor:</strong> Dr. ${escapeHtml(doc ? doc.name : '')}</p>
-        <p><strong>Patient:</strong> ${escapeHtml(pat ? pat.name : '')}</p>
-        <p><strong>Time:</strong> ${escapeHtml(a.time || '')}</p>
-        <p><strong>Type:</strong> ${a.emergency ? 'Emergency' : 'Normal'}</p>
+    <h2 class="page-title">Appointment Details</h2>
+    <div class="card">
+      <p><strong>Doctor:</strong> Dr. ${escapeHtml(doc ? doc.name : '')}</p>
+      <p><strong>Patient:</strong> ${escapeHtml(pat ? pat.name : '')}</p>
+      <p><strong>Time:</strong> ${escapeHtml(a.time || '')}</p>
+      <p><strong>Type:</strong> ${a.emergency ? 'Emergency' : 'Normal'}</p>
 
-        <h3>Create Prescription</h3>
-        <button class="button small" onclick="startVoicePrescription('${a.id}')">
-          Start Recording (Demo)
-        </button>
-        <button class="button small" onclick="generateVoicePrescription('${a.id}')">
-          Generate from Voice (Demo)
-        </button>
-        <button class="button small" onclick="openManualPrescription('${a.id}')">
-          Create Manually
-        </button>
+      <h3>Create Prescription</h3>
+      <button class="button small" onclick="startVoicePrescription('${a.id}')">Start Recording (Demo)</button>
+      <button class="button small" onclick="generateVoicePrescription('${a.id}')">Generate from Voice (Demo)</button>
+      <button class="button small" onclick="openManualPrescription('${a.id}')">Create Manually</button>
 
-        <h3 style="margin-top:16px;">Billing</h3>
-        <button class="button small" onclick="openBilling('${a.id}')">Create Bill</button>
-      </div>
-    `,
+      <h3 style="margin-top:16px;">Billing</h3>
+      <button class="button small" onclick="openBilling('${a.id}')">Create Bill</button>
+    </div>
+  `,
     role
   );
 }
@@ -966,36 +945,33 @@ function routePrescriptions() {
   const id = store.session.id;
   const list =
     store.prescriptions
-      .filter((pr) => (role === 'doctor' ? pr.doctorId === id : pr.patientId === id))
-      .map((pr) => {
-        const doc = store.doctors.find((d) => d.id === pr.doctorId);
-        const pat = store.patients.find((p) => p.id === pr.patientId);
-        return `
-          <div class="appt-row">
-            <strong>${escapeHtml(doc ? 'Dr. ' + doc.name : '')} → ${escapeHtml(pat ? pat.name : '')}</strong>
-            <div>${escapeHtml(pr.createdAt || '')}</div>
-            <button class="button small" onclick="viewPrescription('${pr.id}')">View / Print</button>
-          </div>
-        `;
+      .filter(pr => (role === 'doctor' ? pr.doctorId === id : pr.patientId === id))
+      .map(pr => {
+        const doc = store.doctors.find(d => d.id === pr.doctorId);
+        const pat = store.patients.find(p => p.id === pr.patientId);
+        return `<div class="appt-row">
+        <strong>${escapeHtml(doc ? 'Dr. ' + doc.name : '')} → ${escapeHtml(pat ? pat.name : '')}</strong>
+        <div>${escapeHtml(pr.createdAt || '')}</div>
+        <button class="button small" onclick="viewPrescription('${pr.id}')">View / Print</button>
+      </div>`;
       })
       .join('') || '<p>No prescriptions yet.</p>';
 
   layoutDashboard(
     `
-      <h2 class="page-title">Prescriptions</h2>
-      <div class="card">${list}</div>
-    `,
+    <h2 class="page-title">Prescriptions</h2>
+    <div class="card">${list}</div>
+  `,
     role
   );
 }
 
 function startVoicePrescription(apptId) {
-  if (!apptId) return;
   toast('🎙 Voice recording demo started (no real audio).');
 }
 
 function generateVoicePrescription(apptId) {
-  const a = store.appointments.find((x) => x.id === apptId);
+  const a = store.appointments.find(x => x.id === apptId);
   if (!a) return toast('Appointment missing');
 
   const pr = {
@@ -1021,34 +997,34 @@ function generateVoicePrescription(apptId) {
 }
 
 function openManualPrescription(apptId) {
-  const a = store.appointments.find((x) => x.id === apptId);
+  const a = store.appointments.find(x => x.id === apptId);
   if (!a) return toast('Appointment missing');
 
   const role = store.session.role || 'doctor';
-  const doc = store.doctors.find((d) => d.id === a.doctorId);
-  const pat = store.patients.find((p) => p.id === a.patientId);
+  const doc = store.doctors.find(d => d.id === a.doctorId);
+  const pat = store.patients.find(p => p.id === a.patientId);
 
   layoutDashboard(
     `
-      <h2 class="page-title">Manual Prescription</h2>
-      <div class="card">
-        <p><strong>Doctor:</strong> Dr. ${escapeHtml(doc ? doc.name : '')}</p>
-        <p><strong>Patient:</strong> ${escapeHtml(pat ? pat.name : '')}</p>
-        <textarea id="pr_symptoms" class="input" style="height:60px;" placeholder="Symptoms"></textarea>
-        <textarea id="pr_tests" class="input" style="height:60px;" placeholder="Tests Required"></textarea>
-        <textarea id="pr_diag" class="input" style="height:60px;" placeholder="Diagnosis"></textarea>
-        <textarea id="pr_advice" class="input" style="height:60px;" placeholder="Advice"></textarea>
-        <input id="pr_follow" class="input" placeholder="Follow up (e.g. After 5 days)">
-        <textarea id="pr_meds" class="input" style="height:80px;" placeholder="Medicines (free text)"></textarea>
-        <button class="button primary" onclick="saveManualPrescription('${a.id}')">Save Prescription</button>
-      </div>
-    `,
+    <h2 class="page-title">Manual Prescription</h2>
+    <div class="card">
+      <p><strong>Doctor:</strong> Dr. ${escapeHtml(doc ? doc.name : '')}</p>
+      <p><strong>Patient:</strong> ${escapeHtml(pat ? pat.name : '')}</p>
+      <textarea id="pr_symptoms" class="input" style="height:60px;" placeholder="Symptoms"></textarea>
+      <textarea id="pr_tests" class="input" style="height:60px;" placeholder="Tests Required"></textarea>
+      <textarea id="pr_diag" class="input" style="height:60px;" placeholder="Diagnosis"></textarea>
+      <textarea id="pr_advice" class="input" style="height:60px;" placeholder="Advice"></textarea>
+      <input id="pr_follow" class="input" placeholder="Follow up (e.g. After 5 days)">
+      <textarea id="pr_meds" class="input" style="height:80px;" placeholder="Medicines (free text)"></textarea>
+      <button class="button primary" onclick="saveManualPrescription('${a.id}')">Save Prescription</button>
+    </div>
+  `,
     role
   );
 }
 
 function saveManualPrescription(apptId) {
-  const a = store.appointments.find((x) => x.id === apptId);
+  const a = store.appointments.find(x => x.id === apptId);
   if (!a) return toast('Appointment missing');
 
   const pr = {
@@ -1074,39 +1050,38 @@ function saveManualPrescription(apptId) {
 }
 
 function viewPrescription(prId) {
-  const pr = store.prescriptions.find((p) => p.id === prId);
+  const pr = store.prescriptions.find(p => p.id === prId);
   if (!pr) return toast('Prescription missing');
 
-  const doc = store.doctors.find((d) => d.id === pr.doctorId);
-  const pat = store.patients.find((p) => p.id === pr.patientId);
+  const doc = store.doctors.find(d => d.id === pr.doctorId);
+  const pat = store.patients.find(p => p.id === pr.patientId);
   const role = store.session.role || 'patient';
 
   layoutDashboard(
     `
-      <h2 class="page-title">Prescription</h2>
-      <div class="card">
-        <p><strong>Doctor:</strong> Dr. ${escapeHtml(doc ? doc.name : '')}</p>
-        <p><strong>Clinic:</strong> ${escapeHtml(doc ? doc.clinic || '' : '')}</p>
-        <p><strong>Patient:</strong> ${escapeHtml(pat ? pat.name : '')}</p>
-        <p><strong>Date:</strong> ${escapeHtml(pr.createdAt || '')}</p>
-        <hr>
-        <p><strong>Symptoms:</strong><br>${escapeHtml(pr.symptoms || '')}</p>
-        <p><strong>Tests Required:</strong><br>${escapeHtml(pr.testsRequired || '')}</p>
-        <p><strong>Diagnosis:</strong><br>${escapeHtml(pr.diagnosis || '')}</p>
-        <p><strong>Advice:</strong><br>${escapeHtml(pr.advice || '')}</p>
-        <p><strong>Follow-up:</strong><br>${escapeHtml(pr.followUp || '')}</p>
-        <p><strong>Medicines:</strong><br>${
-          escapeHtml(
-            pr.medicinesText ||
-              '(auto) ' + (pr.medicines || [])
-                .map((m) => m.name + ' ' + m.freq + ' ' + m.duration)
-                .join('; ')
-          )
-        }</p>
+    <h2 class="page-title">Prescription</h2>
+    <div class="card">
+      <p><strong>Doctor:</strong> Dr. ${escapeHtml(doc ? doc.name : '')}</p>
+      <p><strong>Clinic:</strong> ${escapeHtml(doc ? doc.clinic || '' : '')}</p>
+      <p><strong>Patient:</strong> ${escapeHtml(pat ? pat.name : '')}</p>
+      <p><strong>Date:</strong> ${escapeHtml(pr.createdAt || '')}</p>
+      <hr>
+      <p><strong>Symptoms:</strong><br>${escapeHtml(pr.symptoms || '')}</p>
+      <p><strong>Tests Required:</strong><br>${escapeHtml(pr.testsRequired || '')}</p>
+      <p><strong>Diagnosis:</strong><br>${escapeHtml(pr.diagnosis || '')}</p>
+      <p><strong>Advice:</strong><br>${escapeHtml(pr.advice || '')}</p>
+      <p><strong>Follow-up:</strong><br>${escapeHtml(pr.followUp || '')}</p>
+      <p><strong>Medicines:</strong><br>${escapeHtml(
+        pr.medicinesText ||
+          '(auto) ' +
+            (pr.medicines || [])
+              .map(m => m.name + ' ' + m.freq + ' ' + m.duration)
+              .join('; ')
+      )}</p>
 
-        <button class="button primary" onclick="printPrescription('${pr.id}')">Print</button>
-      </div>
-    `,
+      <button class="button primary" onclick="printPrescription('${pr.id}')">Print</button>
+    </div>
+  `,
     role
   );
 }
@@ -1127,11 +1102,11 @@ function openPrintWindow(html) {
 }
 
 function printPrescription(prId) {
-  const pr = store.prescriptions.find((p) => p.id === prId);
+  const pr = store.prescriptions.find(p => p.id === prId);
   if (!pr) return toast('Prescription missing');
 
-  const doc = store.doctors.find((d) => d.id === pr.doctorId);
-  const pat = store.patients.find((p) => p.id === pr.patientId);
+  const doc = store.doctors.find(d => d.id === pr.doctorId);
+  const pat = store.patients.find(p => p.id === pr.patientId);
 
   openPrintWindow(`
     <html><head><title>Prescription</title></head>
@@ -1166,60 +1141,60 @@ function routeBilling() {
   const id = store.session.id;
   const list =
     store.bills
-      .filter((b) => (role === 'doctor' ? b.doctorId === id : b.patientId === id))
-      .map((b) => {
-        const pat = store.patients.find((p) => p.id === b.patientId);
-        return `
-          <div class="appt-row">
-            <strong>Bill #${escapeHtml(b.id.slice(-6))}</strong>
-            <div>${escapeHtml(pat ? pat.name : '')} • ₹${b.totalAmount} • ${escapeHtml(b.method)} • ${escapeHtml(b.status)}</div>
-            <button class="button small" onclick="printBill('${b.id}')">Print</button>
-          </div>
-        `;
+      .filter(b => (role === 'doctor' ? b.doctorId === id : b.patientId === id))
+      .map(b => {
+        const pat = store.patients.find(p => p.id === b.patientId);
+        return `<div class="appt-row">
+        <strong>Bill #${escapeHtml(b.id.slice(-6))}</strong>
+        <div>${escapeHtml(pat ? pat.name : '')} • ₹${b.totalAmount} • ${escapeHtml(
+          b.method
+        )} • ${escapeHtml(b.status)}</div>
+        <button class="button small" onclick="printBill('${b.id}')">Print</button>
+      </div>`;
       })
       .join('') || '<p>No bills yet.</p>';
 
   layoutDashboard(
     `
-      <h2 class="page-title">Billing</h2>
-      <div class="card">${list}</div>
-    `,
+    <h2 class="page-title">Billing</h2>
+    <div class="card">${list}</div>
+  `,
     role
   );
 }
 
 function openBilling(apptId) {
-  const a = store.appointments.find((x) => x.id === apptId);
+  const a = store.appointments.find(x => x.id === apptId);
   if (!a) return toast('Appointment missing');
 
-  const doc = store.doctors.find((d) => d.id === a.doctorId);
-  const pat = store.patients.find((p) => p.id === a.patientId);
+  const doc = store.doctors.find(d => d.id === a.doctorId);
+  const pat = store.patients.find(p => p.id === a.patientId);
   const role = store.session.role || 'doctor';
 
   layoutDashboard(
     `
-      <h2 class="page-title">Create Bill</h2>
-      <div class="card">
-        <p><strong>Doctor:</strong> Dr. ${escapeHtml(doc ? doc.name : '')}</p>
-        <p><strong>Patient:</strong> ${escapeHtml(pat ? pat.name : '')}</p>
-        <input id="bl_consult" class="input" placeholder="Consultation Fee (₹)">
-        <input id="bl_tests" class="input" placeholder="Test Charges (₹)">
-        <input id="bl_other" class="input" placeholder="Other Charges (₹)">
-        <input id="bl_discount" class="input" placeholder="Discount (₹)">
-        <select id="bl_method" class="input">
-          <option value="UPI">UPI</option>
-          <option value="CARD">Card</option>
-          <option value="CASH">Cash</option>
-        </select>
-        <button class="button primary" onclick="saveBill('${a.id}')">Save Bill</button>
-      </div>
-    `,
+    <h2 class="page-title">Create Bill</h2>
+    <div class="card">
+      <p><strong>Doctor:</strong> Dr. ${escapeHtml(doc ? doc.name : '')}</p>
+      <p><strong>Patient:</strong> ${escapeHtml(pat ? pat.name : '')}</p>
+      <input id="bl_consult" class="input" placeholder="Consultation Fee (₹)">
+      <input id="bl_tests" class="input" placeholder="Test Charges (₹)">
+      <input id="bl_other" class="input" placeholder="Other Charges (₹)">
+      <input id="bl_discount" class="input" placeholder="Discount (₹)">
+      <select id="bl_method" class="input">
+        <option value="UPI">UPI</option>
+        <option value="CARD">Card</option>
+        <option value="CASH">Cash</option>
+      </select>
+      <button class="button primary" onclick="saveBill('${a.id}')">Save Bill</button>
+    </div>
+  `,
     role
   );
 }
 
 function saveBill(apptId) {
-  const a = store.appointments.find((x) => x.id === apptId);
+  const a = store.appointments.find(x => x.id === apptId);
   if (!a) return toast('Appointment missing');
 
   const consult = parseFloat($('bl_consult').value || '0');
@@ -1252,11 +1227,11 @@ function saveBill(apptId) {
 }
 
 function printBill(billId) {
-  const b = store.bills.find((x) => x.id === billId);
+  const b = store.bills.find(x => x.id === billId);
   if (!b) return toast('Bill missing');
 
-  const doc = store.doctors.find((d) => d.id === b.doctorId);
-  const pat = store.patients.find((p) => p.id === b.patientId);
+  const doc = store.doctors.find(d => d.id === b.doctorId);
+  const pat = store.patients.find(p => p.id === b.patientId);
 
   openPrintWindow(`
     <html><head><title>Bill</title></head>
@@ -1292,29 +1267,29 @@ function routeProfile() {
 
   layoutDashboard(
     `
-      <h2 class="page-title">My Profile</h2>
-      <div class="card profile-card">
-        <div class="profile-left">
-          <img src="./assets/default-doctor.png" alt="Profile">
-        </div>
-        <div class="profile-right">
-          <h3>${escapeHtml(me.name || '')}</h3>
-          <p><strong>Email:</strong> ${escapeHtml(me.email || '')}</p>
-          <p><strong>Mobile:</strong> ${escapeHtml(me.mobile || '')}</p>
-          <p><strong>Gender:</strong> ${escapeHtml(me.gender || '')}</p>
-          ${
-            role === 'doctor'
-              ? `<p><strong>Specialization:</strong> ${escapeHtml(me.spec || '')}</p>`
-              : ''
-          }
-          <button class="button small" onclick="navigate('${
-            role === 'doctor'
-              ? '#/doctor-profile-complete'
-              : '#/patient-profile-complete'
-          }')">Edit Profile</button>
-        </div>
+    <h2 class="page-title">My Profile</h2>
+    <div class="card profile-card">
+      <div class="profile-left">
+        <img src="./assets/default-doctor.png" alt="Profile">
       </div>
-    `,
+      <div class="profile-right">
+        <h3>${escapeHtml(me.name || '')}</h3>
+        <p><strong>Email:</strong> ${escapeHtml(me.email || '')}</p>
+        <p><strong>Mobile:</strong> ${escapeHtml(me.mobile || '')}</p>
+        <p><strong>Gender:</strong> ${escapeHtml(me.gender || '')}</p>
+        ${
+          role === 'doctor'
+            ? `<p><strong>Specialization:</strong> ${escapeHtml(me.spec || '')}</p>`
+            : ''
+        }
+        <button class="button small" onclick="navigate('${
+          role === 'doctor'
+            ? '#/doctor-profile-complete'
+            : '#/patient-profile-complete'
+        }')">Edit Profile</button>
+      </div>
+    </div>
+  `,
     role
   );
 }
@@ -1326,18 +1301,16 @@ function routeVideoCall() {
   const role = store.session.role || 'patient';
   layoutDashboard(
     `
-      <h2 class="page-title">Video Consultation (Demo)</h2>
-      <div class="card">
-        <p>This is a front-end demo only. Real video call needs a backend signaling server.</p>
-        <div class="video-box">
-          <video autoplay muted playsinline></video>
-          <video autoplay playsinline></video>
-        </div>
-        <p style="margin-top:10px;">
-          You can integrate WebRTC + Socket.IO later on your Node.js server.
-        </p>
+    <h2 class="page-title">Video Consultation (Demo)</h2>
+    <div class="card">
+      <p>This is a front-end demo only. Real video call needs a backend signaling server.</p>
+      <div class="video-box">
+        <video autoplay muted playsinline></video>
+        <video autoplay playsinline></video>
       </div>
-    `,
+      <p style="margin-top:10px;">You can integrate WebRTC + Socket.IO later on your Node.js server.</p>
+    </div>
+  `,
     role
   );
 }
