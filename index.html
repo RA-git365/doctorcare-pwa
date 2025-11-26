@@ -2,32 +2,22 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>DoctorCare</title>
 
-  <!-- MAIN CSS -->
+  <!-- CSS -->
   <link rel="stylesheet" href="./css/style.css" />
 </head>
 
 <body>
 
-  <!-- GLOBAL TOAST -->
+  <!-- Toast -->
   <div id="toast" class="toast hidden"></div>
 
-  <!-- MAIN CONTAINER -->
+  <!-- App Root -->
   <div id="page-container"></div>
 
-  <!-- FORCE DEFAULT PAGE TO LANDING -->
-  <script>
-    // Tell router to show landing first
-    if (!window.localStorage.getItem("currentPage")) {
-      window.localStorage.setItem("currentPage", "landing");
-    }
-  </script>
-
-  <!-- APP JS -->
+  <!-- Script -->
   <script src="./js/app.js"></script>
-
 </body>
 </html>
