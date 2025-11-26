@@ -1,165 +1,111 @@
-/* ===========================
-   LANDING PAGE — FIXED & ISOLATED
-   =========================== */
-
-.landing-page .landing-wrapper {
-  width: 100%;
-  min-height: 100vh;
-  background: linear-gradient(180deg, #0052A3, #0077CC);
-  color: #fff;
-  display: flex;
-  flex-direction: column;
-  overflow: visible !important;
-  position: relative;
-  z-index: 5;
+:root{
+  --primary-blue: #6EC6FF;
+  --accent: #00a8ff;
+  --dark: #07263b;
+  --muted: #6b7280;
+  --card-bg: rgba(255,255,255,0.95);
 }
 
-/* TOP BUTTONS */
-.landing-page .top-buttons {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 16px;
-  padding: 24px 0 12px;
-  z-index: 10;
+*{box-sizing:border-box}
+html,body,#app{height:100%}
+body{
+  margin:0;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background: var(--primary-blue);
+  color: #04233a;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
 }
 
-.landing-page .top-buttons button {
-  background: #ffffff;
-  color: #003366;
-  padding: 12px 22px;
-  font-size: 18px;
-  border-radius: 14px;
-  border: none;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.18);
-}
-.landing-page .top-buttons button:hover { opacity: 0.9; }
-
-/* HERO */
-.landing-page .landing-hero {
-  width: 100%;
-  max-width: 1400px;
-  margin: auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 50px;
-  padding: 50px 80px;
+/* watermark logo in bg */
+.landing-wrapper {
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background-image:
+    url('../images/doctorcare-logo.png'),
+    radial-gradient(circle at top left, rgba(0,114,187,0.08), transparent 35%);
+  background-repeat: no-repeat, no-repeat;
+  background-position: center 8%, center;
+  background-size: 420px, cover;
+  padding: 24px;
 }
 
-/* LEFT TEXT */
-.landing-page .hero-left {
-  text-align: left;
-  max-width: 500px;
-}
-
-.landing-page .hero-left h1 {
-  font-size: 64px;
-  font-weight: 700;
-  line-height: 1.1;
-  margin: 0 0 10px;
-}
-
-.landing-page .hero-left .lead {
-  font-size: 24px;
-  margin: 0;
-  line-height: 1.4;
-}
-
-/* CTA BUTTON */
-.landing-page .button-primary-landing {
-  margin-top: 26px;
-  background: #ff6a3d;
+/* landing */
+.landing{
+  width:100%;
+  max-width:920px;
+  margin:0 auto;
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+  border-radius:20px;
+  padding:28px;
   color: #ffffff;
-  font-size: 22px;
-  padding: 14px 32px;
+  box-shadow: 0 8px 30px rgba(3,23,52,0.18);
+  backdrop-filter: blur(4px);
+}
+
+.logo{height:56px}
+
+.landing-hero{
+  text-align:center;
+  padding:36px 16px;
+}
+.landing-hero h1{
+  font-size:44px;
+  margin:6px 0;
+  letter-spacing: -1px;
+  color:#ffffff;
+}
+.sub{opacity:0.95; margin-top:6px; color:#ecfeff}
+.small-note{margin-top:14px; font-size:13px; color:rgba(255,255,255,0.85)}
+
+/* buttons */
+.top-buttons{display:flex;gap:14px;justify-content:center;margin-top:22px;flex-wrap:wrap}
+.btn{
+  padding:10px 18px;
+  border-radius:10px;
+  font-weight:600;
   border: none;
-  border-radius: 14px;
-  cursor: pointer;
-  font-weight: 600;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.28);
+  cursor:pointer;
+  min-width:140px;
 }
-.landing-page .button-primary-landing:hover { background: #ff5a2a; }
+.btn-primary{ background: linear-gradient(90deg,#00b4ff,#0077cc); color:#fff; box-shadow: 0 6px 18px rgba(3,23,52,0.18);}
+.btn-outline{ background: transparent; border: 2px solid rgba(255,255,255,0.18); color:#fff;}
 
-/* RIGHT IMAGE */
-.landing-page .hero-right {
-  flex: 1 1 auto;
-  min-width: 350px;
-  display: flex;
-  justify-content: center;
+/* small link button */
+.link-btn{ background:transparent; border:none; color:#fff; text-decoration:underline; cursor:pointer; padding:6px 0;}
+
+/* auth screens & patient home */
+.auth-screen{
+  max-width:520px; margin:80px auto; background:var(--card-bg); padding:20px; border-radius:12px;
 }
-
-.landing-page .hero-right img {
-  width: 100%;
-  max-width: 420px;
-  object-fit: contain !important;
-  position: relative;
-  z-index: 20;
+.form label{display:block;margin-bottom:12px;font-size:14px}
+.form input[type="text"], .form input[type="email"], .form input[type="password"]{
+  width:100%; padding:10px;border-radius:8px;border:1px solid #d6e6f6;background:#f7fbff;
+  margin-top:6px;
 }
+.form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:10px}
 
-/* ICON ROW */
-.landing-page .icon-row {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 120px;
-  margin-top: 40px;
-}
+/* patient home UI */
+.patient-home{max-width:1100px;margin:18px auto;padding:16px}
+.header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.patient-meta{font-size:13px;color:var(--muted);margin-top:4px}
+.header-actions .icon-btn{background:transparent;border:1px solid rgba(0,0,0,0.06);padding:8px;border-radius:8px;cursor:pointer}
 
-.landing-page .icon-item {
-  text-align: center;
-}
+.cards-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.card{background:var(--card-bg);padding:14px;border-radius:12px;box-shadow:0 6px 18px rgba(3,23,52,0.06)}
+.card h3{margin:0 0 8px 0}
+.list{max-height:220px;overflow:auto;padding-right:6px}
 
-.landing-page .icon-circle {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 10px;
-}
+/* small list items */
+.list .item{display:flex;justify-content:space-between;align-items:center;padding:8px 6px;border-bottom:1px solid rgba(0,0,0,0.04)}
+.item .meta{font-size:13px;color:var(--muted)}
+.item .actions button{border:none;background:transparent;color:var(--accent);cursor:pointer;padding:6px}
 
-.landing-page .icon-circle img {
-  width: 34px;
-}
-
-.landing-page .icon-item p {
-  font-size: 22px;
-}
-
-/* FOOTER LOGO */
-.landing-page .footer-logo {
-  margin-top: 60px;
-  font-size: 42px;
-  font-weight: 700;
-  padding-bottom: 40px;
-  text-align: center;
-}
-
-
-/* ===========================
-   RESPONSIVE FIXED
-   =========================== */
-
-@media (max-width: 1020px) {
-  .landing-page .landing-hero {
-    flex-direction: column;
-    padding: 40px 40px;
-    gap: 30px;
-    text-align: center;
-  }
-
-  .landing-page .hero-left h1 { font-size: 48px; }
-  .landing-page .hero-right img { max-width: 330px; }
-  .landing-page .icon-row { gap: 70px; }
-}
-
-@media (max-width: 600px) {
-  .landing-page .hero-left h1 { font-size: 36px; }
-  .landing-page .hero-right img { max-width: 260px; }
-  .landing-page .icon-row { gap: 40px; margin-top: 32px; }
+/* responsive */
+@media (max-width:640px){
+  .landing-hero h1{font-size:34px}
+  .landing{padding:18px}
+  .logo{height:48px}
 }
