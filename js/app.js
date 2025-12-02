@@ -100,67 +100,65 @@ const App = (() => {
   // -------------------------------------------
   // Landing screen
   // -------------------------------------------
-  function renderLanding() {
-    root.innerHTML = `
-      <div class="app-shell">
-        <div class="app-inner">
-          <div class="app-topbar">
-            <div class="app-logo-circle">DC</div>
-            <div class="app-title-block">
-              <h1 class="app-title">DoctorCare</h1>
-              <div class="app-subtitle">Appointments • Prescriptions • Billing</div>
+ function renderLanding() {
+  root.innerHTML = `
+    <div class="landing-container">
+
+      <!-- TOP ACTION BUTTONS -->
+      <div class="landing-top-buttons">
+        <button class="btn-top" onclick="location.hash='#/doctor/auth?signup=true'">Doctor Sign Up</button>
+        <button class="btn-top" onclick="location.hash='#/doctor/auth'">Doctor Log In</button>
+        <button class="btn-top" onclick="location.hash='#/patient/auth?signup=true'">Patient Sign Up</button>
+        <button class="btn-top" onclick="location.hash='#/patient/auth'">Patient Log In</button>
+      </div>
+
+      <!-- MAIN CONTENT -->
+      <div class="landing-content">
+        
+        <!-- LEFT SECTION -->
+        <div class="landing-text-box">
+          <h1 class="landing-title">Health in<br>Your Hands.</h1>
+          <p class="landing-subtext">Just Click, Book, and Feel Better.</p>
+
+          <button id="btnMainBook" class="btn-main">
+            Book Appointment
+          </button>
+
+          <!-- ICON ROW -->
+          <div class="icon-row">
+            <div class="icon-item">
+              <span class="icon-circle">✔</span>
+              <p>Click</p>
             </div>
-          </div>
 
-          <div class="app-content">
-
-            <div class="landing-header">
-              <div class="landing-title">Welcome to DoctorCare</div>
-              <div class="landing-subtitle">
-                Connect patients and doctors in one place. Secure, simple, and optimized for mobile.
-              </div>
+            <div class="icon-item">
+              <span class="icon-circle">📅</span>
+              <p>Book</p>
             </div>
 
-            <div class="landing-hero">
-              <div class="landing-hero-title">Your clinic in your pocket</div>
-              <div class="landing-hero-text">
-                Doctors can manage appointments, prescriptions, and billing. Patients can book visits, track prescriptions, and view bills.
-              </div>
+            <div class="icon-item">
+              <span class="icon-circle">🙂</span>
+              <p>Feel Better</p>
             </div>
-
-            <div class="role-grid">
-              <div class="role-card doctor">
-                <div class="role-title">Doctor</div>
-                <div class="role-text">
-                  Login or register to manage your daily appointments, prescriptions, and billing.
-                </div>
-                <button class="btn btn-primary w-100" id="btnDoctorAuth">Doctor Login / Signup</button>
-              </div>
-
-              <div class="role-card patient">
-                <div class="role-title">Patient</div>
-                <div class="role-text">
-                  Book appointments, view prescriptions, and keep your billing history in one place.
-                </div>
-                <button class="btn btn-ghost w-100" id="btnPatientAuth">Patient Login / Signup</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="app-footer">
-            DoctorCare PWA • Works offline for saved data
           </div>
         </div>
-      </div>
-    `;
 
-    document.getElementById('btnDoctorAuth').onclick = () => {
-      location.hash = '#/doctor/auth';
-    };
-    document.getElementById('btnPatientAuth').onclick = () => {
-      location.hash = '#/patient/auth';
-    };
-  }
+        <!-- RIGHT IMAGE PLACEHOLDER -->
+        <div class="landing-image">
+          <img src="./images/doctorcare-landing.png" alt="DoctorCare Illustration" />
+        </div>
+      </div>
+
+      <!-- FOOTER BRANDING -->
+      <div class="landing-footer">DoctorCare</div>
+    </div>
+  `;
+
+  document.getElementById("btnMainBook").onclick = () => {
+    location.hash = "#/patient/book";
+  };
+}
+
 
   // -------------------------------------------
   // Doctor Auth (Login / Signup)
