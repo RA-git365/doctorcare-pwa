@@ -1,7 +1,3 @@
-// ===============================================
-// DoctorCare PWA — Single Page App
-// Hash-based router + localStorage DB + PWA
-// ===============================================
 console.log('[DoctorCare] app.js loaded');
 
 const App = (() => {
