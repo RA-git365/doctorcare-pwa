@@ -1,28 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>DoctorCare</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- Theme colors for PWA -->
-  <meta name="theme-color" content="#0052A3" />
-
-  <!-- Manifest -->
-  <link rel="manifest" href="manifest.json" />
-
-  <!-- Styles -->
-  <link rel="stylesheet" href="./css/style.css" />
-
-  <!-- Icons (you can replace with your own paths) -->
-  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
-  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
-
-</head>
-<body>
-  <div id="app"></div>
-
-  <!-- Main App Script -->
-  <script src="./js/app.js"></script>
-</body>
-</html>
+{
+  "name": "DoctorCare",
+  "short_name": "DoctorCare",
+  "description": "DoctorCare — Book doctor appointments, manage prescriptions, and handle billing in a mobile-first PWA.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0052A3",
+  "theme_color": "#0052A3",
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
