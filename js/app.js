@@ -1466,8 +1466,86 @@ async function generatePrescriptionPDF(appointmentId) {
 
   alert("Prescription PDF created.");
 }
+// ======================================================
+// BILLING PDF GENERATOR (jsPDF + html2canvas)
+// ======================================================
 
+async function generateBillPDF(appointmentId) {
+  const { db } = getCurrentDoctorOrRedirect();
+  const appointment = db.appointments.find(a => a.id === appointmentId);
+  const doctor = db.users.find(u => u.id === appointment.doctorId);
+  const patient = db.users.find(u => u.id === appointment.patientId);
+  const bill = appointment.billing;
 
+  // Temporary invoice HTML (converted to canvas → PDF)
+  const invoiceHtml = `
+  <div id="pdfInvoice" style="width:500px;padding:20px;font-family:'Arial';">
+    <h2 style="text-align:center;margin-bottom:0;">DOCTORCARE</h2>
+    <p style="text-align:center;margin-top:0;color:#777">Premium Health Service</p>
+    <hr>
 
+    <p><strong>Doctor:</strong> ${doctor.name} (${doctor.doctorProfile.specialization})</p>
+    <p><strong>Patient:</strong> ${patient.name}</p>
+    <p><strong>Date:</strong> ${appointment.date} &nbsp;&nbsp; <strong>Time:</strong> ${appointment.time}</p>
+    
+    <h3 style="margin-top:20px;">Invoice Details</h3>
+    <table style="width:100%;border-collapse:collapse;">
+      <tr>
+        <th style="border-bottom:1px solid #aaa;text-align:left;">Item</th>
+        <th style="border-bottom:1px solid #aaa;text-align:right;">Amount (₹)</th>
+      </tr>
+      <tr>
+        <td>Consultation Fee</td>
+        <td style="text-align:right;">${bill.consultationFee}</td>
+      </tr>
+      ${
+        bill.items.map(i=>`
+        <tr>
+          <td>${i.title}</td>
+          <td style="text-align:right;">${i.amount}</td>
+        </tr>`).join('')
+      }
+      <tr>
+        <td style="border-top:1px solid #aaa;"><strong>Discount</strong></td>
+        <td style="text-align:right;border-top:1px solid #aaa;">- ${bill.discount}</td>
+      </tr>
+      <tr>
+        <td style="border-top:1px solid #aaa;"><strong>Total</strong></td>
+        <td style="text-align:right;border-top:1px solid #aaa;"><strong>${bill.total}</strong></td>
+      </tr>
+    </table>
 
+    <p style="margin-top:30px;font-size:12px;text-align:center;">
+      GST Registered Invoice — Future Ready<br>
+      Smart Verification QR Attached
+    </p>
+
+    <p style="margin-top:40px;">Signature: ______________________</p>
+
+  </div>
+  `;
+
+  root.innerHTML = invoiceHtml;
+
+  const invoiceElement = document.getElementById("pdfInvoice");
+
+  const canvas = await html2canvas(invoiceElement);
+  const imgData = canvas.toDataURL("image/png");
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF("p", "mm", "a4");
+
+  const width = pdf.internal.pageSize.getWidth();
+  const height = (canvas.height * width) / canvas.width;
+  pdf.addImage(imgData, "PNG", 0, 0, width, height);
+
+  pdf.save(`Invoice-${patient.name}.pdf`);
+
+  // Store PDF creation flag & notify patient
+  appointment.billing.pdfGenerated = true;
+  saveDB(db);
+
+  alert("Bill PDF created.");
+  renderDoctorDashboard();
+}
 })();
