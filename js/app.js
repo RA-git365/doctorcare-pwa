@@ -837,4 +837,213 @@
 
   // Kick off
   handleRoute();
+  // =======================
+// PATIENT PROFILE & DASHBOARD
+// =======================
+
+function getCurrentPatientOrRedirect() {
+  const session = loadSession();
+  if (!session || session.role !== 'patient') {
+    location.hash = '#/patient/login';
+    return null;
+  }
+  const db = loadDB();
+  const patient = db.users.find(u => u.id === session.userId);
+  return { db, patient };
+}
+
+function renderPatientDashboard() {
+  const ctx = getCurrentPatientOrRedirect();
+  if (!ctx) return;
+  const { patient } = ctx;
+
+  // Require profile completion later (Phase 4 update)
+  
+  root.innerHTML = `
+  <div class="patient-layout">
+    
+    <div class="patient-top">
+      <div>
+        <div class="patient-name">Hi, ${patient.name?.split(" ")[0]}</div>
+        <div class="text-sm text-muted">Welcome back</div>
+      </div>
+      <div class="patient-avatar">${patient.photoData ? `<img src="${patient.photoData}" width="100%">` : patient.name[0]}</div>
+    </div>
+
+    <div class="patient-cards-grid">
+      <div class="patient-card" id="cardDoctors">
+        <div class="patient-card-title">Doctors Near Me</div>
+        <div class="patient-card-sub">Find specialists</div>
+      </div>
+
+      <div class="patient-card" id="cardAppointments">
+        <div class="patient-card-title">Appointments</div>
+        <div class="patient-card-sub">View or reschedule</div>
+      </div>
+
+      <div class="patient-card" id="cardPrescriptions">
+        <div class="patient-card-title">Prescriptions</div>
+        <div class="patient-card-sub">Your medical history</div>
+      </div>
+
+      <div class="patient-card" id="cardBilling">
+        <div class="patient-card-title">Billing Summary</div>
+        <div class="patient-card-sub">Payments & receipts</div>
+      </div>
+    </div>
+
+    <div class="patient-btn-row">
+      <button class="btn-big" id="btnBook">Book Appointment</button>
+      <button class="btn-big" id="btnProfile">Edit Profile</button>
+    </div>
+
+  </div>
+  `;
+
+  document.getElementById("btnBook").onclick = () => renderDoctorSelection();
+}
+
+
+// ===========================
+// STEP: Doctor Selection Screen
+// ===========================
+
+function renderDoctorSelection() {
+  const { db } = getCurrentPatientOrRedirect();
+  const doctors = db.users.filter(u => u.role === 'doctor' && u.doctorProfile?.profileComplete);
+
+  root.innerHTML = `
+    <div class="patient-layout">
+      <h2>Select Doctor</h2>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+      ${
+        doctors.map(d=>`
+        <div class="patient-card" data-id="${d.id}">
+          <div class="patient-card-title">${d.name} — ${d.doctorProfile.specialization}</div>
+          <div class="patient-card-sub">Fee: ₹${d.doctorProfile.fee}</div>
+          <div class="patient-card-sub">📞 ${d.mobile}</div>
+        </div>
+        `).join('')
+      }
+      </div>
+    </div>
+  `;
+
+  document.querySelectorAll('.patient-card').forEach(card=>{
+    card.onclick = ()=>{
+      const id = card.getAttribute("data-id");
+      renderIOSBooking(id);
+    }
+  });
+}
+
+
+// ===========================
+// STEP: iOS Booking Modal
+// ===========================
+
+function renderIOSBooking(doctorId) {
+  const ctx = getCurrentPatientOrRedirect();
+  if (!ctx) return;
+  const { db, patient } = ctx;
+  const doctor = db.users.find(u => u.id === doctorId);
+
+  // Generate next 7 days
+  const today = new Date();
+  const dates = [];
+  for(let i=0;i<7;i++){
+    const d = new Date(today);
+    d.setDate(today.getDate()+i);
+    dates.push(d.toISOString().slice(0,10));
+  }
+
+  // Generate time slots based on doctor's availability rules
+  const duration = parseInt(doctor.doctorProfile.slotDuration || 15);
+  const fullRange = [];
+
+  // Simple demo: assume availability time is "9:00-17:00"
+  // Real parsing later
+  let start = 9 * 60; 
+  let end = 17 * 60;
+
+  for(let t=start; t<end; t+=duration){
+    const h = String(Math.floor(t/60)).padStart(2,'0');
+    const m = String(t%60).padStart(2,'0');
+    fullRange.push(`${h}:${m}`);
+  }
+
+  // Remove booked slot
+  const booked = db.appointments.filter(a=>a.doctorId===doctorId).map(a=>a.time);
+  const availableSlots = fullRange.filter(t=>!booked.includes(t));
+
+  root.innerHTML = `
+  <div class="patient-layout">
+    <h2>Choose Date & Time</h2>
+    <button class="btn-big" id="openPicker">📅 Select Slot</button>
+  </div>
+
+  <div class="ios-modal-bg" id="pickerModal" style="display:none;">
+    <div class="ios-picker">
+
+      <div class="ios-wheel">
+        <select id="datePicker">
+          ${dates.map(d=>`<option>${d}</option>`).join('')}
+        </select>
+      </div>
+
+      <div class="ios-wheel">
+        <select id="timePicker">
+          ${availableSlots.length 
+            ? availableSlots.map(t=>`<option>${t}</option>`).join('')
+            : `<option>No slots</option>`}
+        </select>
+      </div>
+
+      <div class="ios-picker-actions">
+        <button class="btn-picker btn-cancel" id="cancelPicker">Cancel</button>
+        <button class="btn-picker btn-confirm" id="confirmPicker">Confirm</button>
+      </div>
+    </div>
+  </div>
+  `;
+
+  document.getElementById("openPicker").onclick = ()=>{
+    document.getElementById("pickerModal").style.display="flex";
+  };
+
+  document.getElementById("cancelPicker").onclick = ()=>{
+    document.getElementById("pickerModal").style.display="none";
+  };
+
+  document.getElementById("confirmPicker").onclick = ()=>{
+    const date = document.getElementById("datePicker").value;
+    const time = document.getElementById("timePicker").value;
+
+    db.appointments.push({
+      id: uid(),
+      doctorId,
+      patientId: patient.id,
+      date,
+      time,
+      status: "confirmed"
+    });
+
+    saveDB(db);
+
+    // Notification for doctor
+    if (!db.notifications) db.notifications=[];
+    db.notifications.push({
+      doctorId,
+      message:`New appointment booked by ${patient.name} on ${date} at ${time}`,
+      timestamp:Date.now(),
+      read:false
+    });
+    saveDB(db);
+
+    alert("Appointment confirmed!");
+
+    renderPatientDashboard();
+  };
+}
+
 })();
