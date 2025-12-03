@@ -789,6 +789,7 @@
         </main>
       </div>
     `;
+document.getElementById("historyBtn").onclick = () => renderHistory("doctor");
 
     document.getElementById('btnGoProfile').onclick = () => {
       location.hash = '#/doctor/profile';
@@ -899,10 +900,43 @@ function renderPatientDashboard() {
 
   </div>
   `;
-
+document.getElementById("cardPrescriptions").onclick = () => renderHistory("patient");
   document.getElementById("btnBook").onclick = () => renderDoctorSelection();
 }
+// ================================
+// PATIENT & DOCTOR HISTORY SCREEN
+// ================================
 
+function renderHistory(role) {
+  const session = loadSession();
+  if (!session) return;
+
+  const db = loadDB();
+  const user = db.users.find(u => u.id === session.userId);
+
+  const appointments = db.appointments.filter(a =>
+    role === "doctor" ? a.doctorId === user.id : a.patientId === user.id
+  );
+
+  root.innerHTML = `
+    <div class="app-content">
+      <h2>Medical Records</h2>
+      ${
+        appointments.length
+        ? appointments.map(a=>`
+          <div class="card">
+            <strong>${a.date} - ${a.time}</strong><br>
+            Status: ${a.status}<br>
+            <button class="btn-primary mt-8" onclick="renderBillingSummary('${a.id}')">View Files</button>
+          </div>
+        `).join('')
+        : `<p>No records found.</p>`
+      }
+      <button class="btn-ghost w-100 mt-16" onclick="${role==='doctor'?'renderDoctorDashboard()':'renderPatientDashboard()'}">Back</button>
+    </div>
+  `;
+}
+ 
 
 // ===========================
 // STEP: Doctor Selection Screen
