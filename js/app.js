@@ -1208,7 +1208,187 @@ function savePrescription(appointmentId) {
 
   alert("Prescription saved. Proceeding to billing...");
   renderBilling(appointmentId);
+} 
+  // ======================================================
+// PHASE 4 — BILLING MODULE
+// ======================================================
+
+function renderBilling(appointmentId) {
+  const { db } = getCurrentDoctorOrRedirect();
+  const appointment = db.appointments.find(a => a.id === appointmentId);
+  const doctor = db.users.find(u => u.id === appointment.doctorId);
+  const patient = db.users.find(u => u.id === appointment.patientId);
+
+  // Create billing object if not exists
+  if (!appointment.billing) {
+    appointment.billing = {
+      consultationFee: doctor.doctorProfile?.fee || 500,
+      items: [],
+      discount: 0,
+      total: 0,
+      status: "pending"
+    };
+    saveDB(db);
+  }
+
+  const bill = appointment.billing;
+
+  root.innerHTML = `
+    <div class="app-content">
+
+      <h2 class="section-title">Billing for ${patient.name}</h2>
+
+      <div class="card">
+        <label class="input-label">Consultation Fee</label>
+        <input class="input-control" id="consultFee" type="number" value="${bill.consultationFee}">
+      </div>
+
+      <div class="card">
+        <label class="input-label">Additional Charges</label>
+        ${
+          bill.items.length
+          ? bill.items.map((i,idx)=>`
+            <div class="simple-list-item" style="display:flex; justify-content:space-between; align-items:center;">
+              <span>${i.title}: ₹${i.amount}</span>
+              <button class="btn btn-danger" onclick="removeBillingItem('${appointmentId}', ${idx})">✕</button>
+            </div>
+          `).join('')
+          : `<p class="text-muted">No extra charges added</p>`
+        }
+        <button class="btn-primary mt-12" onclick="renderAddBillingItem('${appointmentId}')">+ Add Charge</button>
+      </div>
+
+      <div class="card">
+        <label class="input-label">Discount (₹)</label>
+        <input class="input-control" id="discountInput" type="number" value="${bill.discount}">
+      </div>
+
+      <button class="btn-primary w-100 mt-16" onclick="calculateBill('${appointmentId}')">Calculate Total</button>
+
+      <button class="btn-ghost w-100 mt-8" onclick="renderDoctorDashboard()">Cancel</button>
+    </div>
+  `;
 }
+
+
+
+// ===============================
+// ADD BILL ITEM SCREEN
+// ===============================
+
+function renderAddBillingItem(appointmentId) {
+  root.innerHTML = `
+    <div class="app-content">
+      <h2>Add Charge</h2>
+
+      <div class="card">
+        <label class="input-label">Charge Title</label>
+        <input class="input-control" id="billTitle" placeholder="Ex: Blood Test, X-Ray">
+      </div>
+
+      <div class="card">
+        <label class="input-label">Amount (₹)</label>
+        <input class="input-control" id="billAmount" type="number" placeholder="Ex: 500">
+      </div>
+
+      <button class="btn-primary w-100" onclick="addBillingItem('${appointmentId}')">Add</button>
+      <button class="btn-ghost w-100 mt-8" onclick="renderBilling('${appointmentId}')">Back</button>
+    </div>
+  `;
+}
+
+function addBillingItem(appointmentId) {
+  const { db } = getCurrentDoctorOrRedirect();
+  const appointment = db.appointments.find(a => a.id === appointmentId);
+
+  const title = document.getElementById("billTitle").value.trim();
+  const amount = parseInt(document.getElementById("billAmount").value.trim());
+
+  if (!title || !amount) return alert("Both title and amount are required.");
+
+  appointment.billing.items.push({ title, amount });
+  saveDB(db);
+
+  renderBilling(appointmentId);
+}
+
+function removeBillingItem(appointmentId, idx) {
+  const { db } = getCurrentDoctorOrRedirect();
+  const appointment = db.appointments.find(a => a.id === appointmentId);
+
+  appointment.billing.items.splice(idx,1);
+  saveDB(db);
+
+  renderBilling(appointmentId);
+}
+
+
+
+// ===============================
+// CALCULATE BILL + FINAL CONFIRMATION
+// ===============================
+
+function calculateBill(appointmentId) {
+  const { db } = getCurrentDoctorOrRedirect();
+  const appointment = db.appointments.find(a => a.id === appointmentId);
+
+  const consultFee = parseInt(document.getElementById("consultFee").value);
+  const discount = parseInt(document.getElementById("discountInput").value);
+
+  const extraTotal = appointment.billing.items.reduce((sum,i)=>sum+i.amount,0);
+  const total = consultFee + extraTotal - discount;
+
+  appointment.billing.consultationFee = consultFee;
+  appointment.billing.discount = discount;
+  appointment.billing.total = total;
+  appointment.billing.status = "ready";
+  appointment.status = "completed"; // Appointment fully processed
+
+  saveDB(db);
+
+  alert(`Bill Created Successfully.\nTotal: ₹${total}`);
+
+  // Notify patient
+  if (!db.notifications) db.notifications=[];
+  db.notifications.push({
+    patientId: appointment.patientId,
+    message:`Your bill is ready. Total: ₹${total}`,
+    timestamp:Date.now(),
+    read:false
+  });
+  saveDB(db);
+
+  renderBillingSummary(appointmentId);
+}
+
+
+
+// ===============================
+// BILL SUMMARY (Review + PDF/Download next)
+// ===============================
+
+function renderBillingSummary(appointmentId) {
+  const { db } = getCurrentDoctorOrRedirect();
+  const appointment = db.appointments.find(a => a.id === appointmentId);
+  const bill = appointment.billing;
+  const patient = db.users.find(u => u.id === appointment.patientId);
+
+  root.innerHTML = `
+    <div class="app-content">
+
+      <h2>Final Bill</h2>
+
+      <div class="card">
+        <strong>Patient:</strong> ${patient.name}<br>
+        <strong>Total:</strong> ₹${bill.total}
+      </div>
+
+      <button class="btn-primary w-100 mt-16" onclick="alert('PDF + Print will be available in next phase')">📄 Download PDF (Coming Next)</button>
+      <button class="btn-ghost w-100 mt-8" onclick="renderDoctorDashboard()">Finish</button>
+    </div>
+  `;
+}
+
 
 
 })();
