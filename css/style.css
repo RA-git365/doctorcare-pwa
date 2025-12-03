@@ -850,3 +850,157 @@ body {
   }
 }
 
+/* ==========================================
+   PHASE 3 — PATIENT DASHBOARD + IOS PICKER
+========================================== */
+
+/* PATIENT DASHBOARD */
+.patient-layout {
+  width: 100%;
+  min-height: 100vh;
+  background: #F2F6FE;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.patient-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.patient-name {
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.patient-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #C7D2FE;
+  font-size: 20px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+/* Cards */
+
+.patient-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.patient-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 10px 26px rgba(0,0,0,0.08);
+  padding: 16px;
+  cursor: pointer;
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.patient-card-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.patient-card-sub {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+/* Buttons */
+.patient-btn-row {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(2,1fr);
+  gap: 10px;
+}
+
+.btn-big {
+  background: #0052A3;
+  color: #fff;
+  border-radius: 14px;
+  padding: 12px;
+  border:none;
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+/* IOS PICKER MODAL */
+.ios-modal-bg {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 40%;
+  background: rgba(0,0,0,0.5);
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+}
+
+.ios-picker {
+  width: 100%;
+  max-width: 480px;
+  background: #fff;
+  border-radius: 18px 18px 0 0;
+  padding: 16px;
+  animation: slideUp .3s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.ios-wheel {
+  width:100%;
+  height:120px;
+  overflow:hidden;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-size:18px;
+  font-weight:600;
+}
+
+.ios-wheel select {
+  width: 100%;
+  font-size:18px;
+  padding:8px;
+  text-align:center;
+  border:none;
+  background:transparent;
+}
+
+.ios-picker-actions {
+  display:flex;
+  justify-content:space-between;
+  margin-top:12px;
+}
+
+.btn-picker {
+  padding:10px 20px;
+  border-radius:12px;
+  font-size:14px;
+  font-weight:600;
+  border:none;
+  cursor:pointer;
+}
+
+.btn-cancel {
+  background:#ccc;
+}
+
+.btn-confirm {
+  background:#007AFF;
+  color:white;
+}
