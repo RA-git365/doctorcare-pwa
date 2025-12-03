@@ -1581,10 +1581,19 @@ async function generateBillPDF(appointmentId) {
   pdf.save(`Invoice-${patient.name}.pdf`);
 
   // Store PDF creation flag & notify patient
-  appointment.billing.pdfGenerated = true;
-  saveDB(db);
+ appointment.billing.pdfGenerated = true;
+saveDB(db);
 
-  alert("Bill PDF created.");
-  renderDoctorDashboard();
+// 🔔 SEND NOTIFICATION TO PATIENT
+db.notifications.push({
+  patientId: appointment.patientId,
+  message:"Your prescription and bill are ready for download.",
+  timestamp:Date.now(),
+  read:false
+});
+saveDB(db);
+
+alert("Bill PDF created.");
+renderDoctorDashboard();
 }
 })();
