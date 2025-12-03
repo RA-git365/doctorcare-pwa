@@ -1388,6 +1388,85 @@ function renderBillingSummary(appointmentId) {
     </div>
   `;
 }
+  // ======================================================
+// PRESCRIPTION PDF GENERATOR (PDFMake Hybrid Style)
+// ======================================================
+
+async function generatePrescriptionPDF(appointmentId) {
+  const { db } = getCurrentDoctorOrRedirect();
+  const appointment = db.appointments.find(a => a.id === appointmentId);
+  const doctor = db.users.find(u => u.id === appointment.doctorId);
+  const patient = db.users.find(u => u.id === appointment.patientId);
+  const p = appointment.prescription;
+
+  // Smart QR Token
+  const token = `${appointmentId}-${Date.now()}`;
+  appointment.qrToken = token;
+  saveDB(db);
+
+  // Medicines table format
+  const medRows = [
+    ["Medicine", "Dose", "Frequency", "Days", "Notes"],
+    ...p.medicines.map(m => [m.name, m.dose, m.frequency, m.days, m.notes || "-"])
+  ];
+
+  const docDefinition = {
+    content: [
+      {
+        text: "DOCTORCARE",
+        style: "header"
+      },
+      { text: "Your health, made simple.\n\n", style: "subheader" },
+      { text: `${doctor.name}`, style: "docname" },
+      { text: `${doctor.doctorProfile.specialization}\n\n`, style: "subtitle" },
+
+      {
+        text: `Patient: ${patient.name}\nDate: ${appointment.date}\nTime: ${appointment.time}\n\n`,
+        style: "section"
+      },
+
+      { text: `Diagnosis:\n${p.diagnosis}\n\n`, style: "section" },
+      { text: `Symptoms:\n${p.symptoms}\n\n`, style: "section" },
+
+      { text: "Medicines", style: "tableHeader" },
+      {
+        table: { headerRows: 1, widths: ["*", 50, 60, 40, "*"], body: medRows },
+        margin: [0, 10, 0, 20]
+      },
+
+      { text: `Advice:\n${p.advice}\n\n`, style: "section" },
+      { text: `Additional Notes:\n${p.notes}\n\n`, style: "section" },
+
+      {
+        text: `Signature: ______________________`,
+        margin: [0, 40, 0, 10]
+      },
+      {
+        text: `Verification QR Token: ${token}`,
+        style: "qr"
+      }
+    ],
+
+    styles: {
+      header: { fontSize: 22, bold: true, alignment: "center", margin: [0, 10, 0, 0] },
+      subheader: { fontSize: 12, alignment: "center", margin: [0, 0, 0, 20] },
+      docname: { fontSize: 18, bold: true, alignment: "center" },
+      subtitle: { fontSize: 12, alignment: "center", color: "#444", margin: [0, 0, 0, 20] },
+      section: { fontSize: 12, margin: [0, 4] },
+      tableHeader: { bold: true, fontSize: 14, margin: [0, 6] },
+      qr: { fontSize: 9, opacity: 0.6, alignment: "center" }
+    }
+  };
+
+  pdfMake.createPdf(docDefinition).download(`Prescription-${patient.name}.pdf`);
+
+  // Save "PDF generated" record
+  appointment.prescription.pdfGenerated = true;
+  saveDB(db);
+
+  alert("Prescription PDF created.");
+}
+
 
 
 
