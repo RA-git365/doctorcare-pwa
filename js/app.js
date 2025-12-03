@@ -1,14 +1,18 @@
-// DoctorCare Phase 1 — Landing + Auth UI + Basic Local Auth
+// DoctorCare — Phase 2
+// Landing + Auth + Doctor Profile + Doctor Dashboard (localStorage-based)
 
 (function () {
   const root = document.getElementById('app');
 
-  const DB_KEY = 'doctorcare_db_v1';
+  const DB_KEY = 'doctorcare_db_v2';
   const SESSION_KEY = 'doctorcare_session_v1';
 
   function defaultDB() {
     return {
-      users: [] // {id, role, name, email, mobile, password}
+      users: [],         // {id, role, name, email, mobile, password, doctorProfile?}
+      appointments: [],  // will use in later phase
+      prescriptions: [],
+      bills: []
     };
   }
 
@@ -17,8 +21,7 @@
       const raw = localStorage.getItem(DB_KEY);
       if (!raw) return defaultDB();
       return JSON.parse(raw);
-    } catch (e) {
-      console.error('DB parse error', e);
+    } catch {
       return defaultDB();
     }
   }
@@ -27,26 +30,33 @@
     localStorage.setItem(DB_KEY, JSON.stringify(db));
   }
 
-  function saveSession(session) {
-    if (!session) {
-      localStorage.removeItem(SESSION_KEY);
-    } else {
-      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-    }
-  }
-
   function loadSession() {
     try {
       const raw = localStorage.getItem(SESSION_KEY);
       if (!raw) return null;
       return JSON.parse(raw);
-    } catch (e) {
+    } catch {
       return null;
     }
   }
 
+  function saveSession(sess) {
+    if (!sess) localStorage.removeItem(SESSION_KEY);
+    else localStorage.setItem(SESSION_KEY, JSON.stringify(sess));
+  }
+
   function uid() {
     return 'id_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+  }
+
+  // Small helper to convert file -> base64 data URL for localStorage
+  function fileToDataURL(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   }
 
   // =======================
@@ -64,7 +74,6 @@
       renderSignup('doctor');
       return;
     }
-
     if (hash.startsWith('#/patient/signup')) {
       renderSignup('patient');
       return;
@@ -74,9 +83,18 @@
       renderLogin('doctor');
       return;
     }
-
     if (hash.startsWith('#/patient/login')) {
       renderLogin('patient');
+      return;
+    }
+
+    if (hash.startsWith('#/doctor/profile')) {
+      renderDoctorProfile();
+      return;
+    }
+
+    if (hash.startsWith('#/doctor/dashboard')) {
+      renderDoctorDashboard();
       return;
     }
 
@@ -128,7 +146,6 @@
 
           <!-- RIGHT IMAGE -->
           <div class="landing-image">
-            <!-- replace src with your own illustration -->
             <img src="./images/doctorcare-hero.png" alt="DoctorCare" />
           </div>
         </div>
@@ -137,7 +154,6 @@
       </div>
     `;
 
-    // Top buttons
     document.getElementById('btnDoctorSignupTop').onclick = () => {
       location.hash = '#/doctor/signup';
     };
@@ -151,15 +167,14 @@
       location.hash = '#/patient/login';
     };
 
-    // Main orange button → patient booking (later)
     document.getElementById('btnMainBook').onclick = () => {
-      // for now go to patient login; later to patient home/booking
+      // for now: go to patient login, later direct to AI/manual booking
       location.hash = '#/patient/login';
     };
   }
 
   // =======================
-  // STEP 2 — Sign Up (Doctor / Patient)
+  // STEP 2 — SIGN UP
   // =======================
   function renderSignup(role) {
     const roleLabel = role === 'doctor' ? 'Doctor' : 'Patient';
@@ -191,18 +206,6 @@
             <input type="password" id="suPassword" class="auth-input" />
           </div>
 
-          <!-- extra doctor fields (we’ll expand later) -->
-          <div id="extraDoctorFields" style="${role === 'doctor' ? '' : 'display:none;'}">
-            <div class="auth-input-group">
-              <label class="auth-label">Specialization</label>
-              <input type="text" id="suSpecialization" class="auth-input" />
-            </div>
-            <div class="auth-input-group">
-              <label class="auth-label">Clinic Address</label>
-              <input type="text" id="suClinic" class="auth-input" />
-            </div>
-          </div>
-
           <div class="auth-actions">
             <button class="btn-auth-primary" id="btnCompleteSignup">Create ${roleLabel} Account</button>
             <button class="btn-auth-secondary" id="btnBackFromSignup">Back</button>
@@ -227,12 +230,10 @@
       }
 
       const db = loadDB();
-
-      // Step 9: Unique email + mobile across all users
-      const existing = db.users.find(
+      const exists = db.users.find(
         u => u.email === email || u.mobile === mobile
       );
-      if (existing) {
+      if (exists) {
         alert('An account already exists with this email or mobile number.');
         return;
       }
@@ -243,29 +244,28 @@
         name,
         email,
         mobile,
-        password // NOTE: plain text here; in real backend we hash
+        password,
+        doctorProfile: role === 'doctor' ? {
+          profileComplete: false
+        } : undefined
       };
 
       db.users.push(user);
       saveDB(db);
-
-      // auto-login
       saveSession({ userId: user.id, role: user.role });
 
       if (role === 'doctor') {
-        // later: go to doctor dashboard
-        alert('Doctor account created. (Next phase: redirect to doctor home)');
-        location.hash = '#/doctor/login';
+        alert('Doctor account created. Please complete your profile.');
+        location.hash = '#/doctor/profile';
       } else {
-        // later: go to patient dashboard
-        alert('Patient account created. (Next phase: redirect to patient home)');
+        alert('Patient account created. (Patient dashboard will be added in next phase.)');
         location.hash = '#/patient/login';
       }
     };
   }
 
   // =======================
-  // STEP 3 — Login (Doctor / Patient)
+  // STEP 3 — LOGIN
   // =======================
   function renderLogin(role) {
     const roleLabel = role === 'doctor' ? 'Doctor' : 'Patient';
@@ -314,21 +314,18 @@
     };
 
     document.getElementById('btnForgot').onclick = () => {
-      alert('Reset password flow will be implemented when we connect the online server (email/SMS).');
+      alert('Password reset will be connected to email/SMS in the online-server phase.');
     };
 
     document.getElementById('btnDoLogin').onclick = () => {
       const identifier = document.getElementById('liIdentifier').value.trim().toLowerCase();
       const password = document.getElementById('liPassword').value;
-
       if (!identifier || !password) {
         alert('Please fill both fields.');
         return;
       }
 
       const db = loadDB();
-
-      // Step 9: login by email OR mobile + password + correct role
       const user = db.users.find(
         u =>
           u.role === role &&
@@ -344,17 +341,500 @@
       saveSession({ userId: user.id, role: user.role });
 
       if (role === 'doctor') {
-        // later: doctor home screen
-        alert('Logged in as doctor. (Next phase: doctor home UI)');
-        // location.hash = '#/doctor/home'; // reserved for next phase
+        // Check profile completion
+        if (!user.doctorProfile || !user.doctorProfile.profileComplete) {
+          alert('Please complete your doctor profile.');
+          location.hash = '#/doctor/profile';
+        } else {
+          location.hash = '#/doctor/dashboard';
+        }
       } else {
-        // later: patient home screen
-        alert('Logged in as patient. (Next phase: patient home UI)');
-        // location.hash = '#/patient/home'; // reserved for next phase
+        alert('Logged in as patient. (Patient dashboard comes next phase.)');
+        // later: location.hash = '#/patient/dashboard';
       }
     };
   }
 
-  // Init
+  // =======================
+  // Helper — Require Doctor Session
+  // =======================
+  function getCurrentDoctorOrRedirect() {
+    const session = loadSession();
+    if (!session || session.role !== 'doctor') {
+      location.hash = '#/doctor/login';
+      return null;
+    }
+    const db = loadDB();
+    const doctor = db.users.find(u => u.id === session.userId && u.role === 'doctor');
+    if (!doctor) {
+      saveSession(null);
+      location.hash = '#/doctor/login';
+      return null;
+    }
+    return { db, doctor };
+  }
+
+  // =======================
+  // Doctor Profile (MANDATORY)
+  // =======================
+  function renderDoctorProfile() {
+    const ctx = getCurrentDoctorOrRedirect();
+    if (!ctx) return;
+    const { db, doctor } = ctx;
+
+    const profile = doctor.doctorProfile || { profileComplete: false };
+
+    root.innerHTML = `
+      <div class="doc-profile-shell">
+        <div class="doc-profile-card">
+          <div class="doc-profile-header">
+            <div>
+              <div class="doc-profile-title">Complete Your Doctor Profile</div>
+              <div class="doc-profile-warning">
+                All fields with <span class="doc-required-mark">*</span> are required before patients can book appointments.
+              </div>
+            </div>
+            <span class="doc-profile-badge">${profile.profileComplete ? 'Profile Complete' : 'Profile Incomplete'}</span>
+          </div>
+
+          <div class="doc-profile-grid">
+            <!-- LEFT: text fields -->
+            <div>
+              <div class="doc-profile-section-title">Basic Details</div>
+
+              <div class="doc-profile-field">
+                <label class="doc-profile-label">Full Name <span class="doc-required-mark">*</span></label>
+                <input type="text" id="dpName" class="doc-profile-input" value="${doctor.name || ''}" />
+              </div>
+
+              <div class="doc-profile-field">
+                <label class="doc-profile-label">Email <span class="doc-required-mark">*</span></label>
+                <input type="email" id="dpEmail" class="doc-profile-input" value="${doctor.email || ''}" />
+              </div>
+
+              <div class="doc-profile-field">
+                <label class="doc-profile-label">Phone Number (visible to patients) <span class="doc-required-mark">*</span></label>
+                <input type="tel" id="dpMobile" class="doc-profile-input" value="${doctor.mobile || ''}" />
+              </div>
+
+              <div class="doc-profile-field">
+                <label class="doc-profile-label">Specialization <span class="doc-required-mark">*</span></label>
+                <input type="text" id="dpSpec" class="doc-profile-input" value="${profile.specialization || ''}" placeholder="Cardiologist, Orthopedic, etc." />
+              </div>
+
+              <div class="doc-profile-field">
+                <label class="doc-profile-label">Years of Experience <span class="doc-required-mark">*</span></label>
+                <input type="number" id="dpExp" class="doc-profile-input" value="${profile.experienceYears || ''}" min="0" />
+              </div>
+
+              <div class="doc-profile-field">
+                <label class="doc-profile-label">Consultation Fee (₹) <span class="doc-required-mark">*</span></label>
+                <input type="number" id="dpFee" class="doc-profile-input" value="${profile.fee || ''}" min="0" />
+              </div>
+
+              <div class="doc-profile-field">
+                <label class="doc-profile-label">Clinic Address <span class="doc-required-mark">*</span></label>
+                <input type="text" id="dpAddress" class="doc-profile-input" value="${profile.clinicAddress || ''}" />
+              </div>
+
+              <div class="doc-profile-field">
+                <label class="doc-profile-label">Location / Map Link <span class="doc-required-mark">*</span></label>
+                <input type="text" id="dpLocation" class="doc-profile-input" value="${profile.location || ''}" placeholder="Google Maps URL or area name" />
+              </div>
+
+              <div class="doc-profile-field">
+                <label class="doc-profile-label">Available Days & Time Slots <span class="doc-required-mark">*</span></label>
+                <input type="text" id="dpAvailability" class="doc-profile-input" value="${profile.availability || ''}" placeholder="Mon–Sat, 10:00–13:00 & 17:00–21:00" />
+              </div>
+
+              <div class="doc-profile-field">
+                <label class="doc-profile-label">About You</label>
+                <textarea id="dpAbout" class="doc-profile-textarea" placeholder="Short introduction for patients...">${profile.about || ''}</textarea>
+              </div>
+
+              <div class="doc-profile-field">
+                <label class="doc-profile-label">Services</label>
+                <textarea id="dpServices" class="doc-profile-textarea" placeholder="e.g. General Consultation, Diabetes Management, ECG...">${profile.services || ''}</textarea>
+              </div>
+            </div>
+
+            <!-- RIGHT: avatar + documents -->
+            <div>
+              <div class="doc-profile-section-title">Profile Image</div>
+              <div class="doc-profile-field">
+                <label class="doc-profile-label">Upload Profile Photo <span class="doc-required-mark">*</span></label>
+                <input type="file" id="dpPhoto" accept="image/*" class="doc-file-input" />
+                <div class="doc-upload-note">JPEG/PNG recommended. Used in both doctor and patient views.</div>
+              </div>
+
+              <div class="doc-profile-section-title" style="margin-top:12px;">Documents</div>
+
+              <div class="doc-profile-field">
+                <label class="doc-profile-label">Degree Certificate <span class="doc-required-mark">*</span></label>
+                <input type="file" id="dpDegree" accept=".pdf,image/*" class="doc-file-input" />
+                <div class="doc-upload-note">Required. Shows your qualification.</div>
+              </div>
+
+              <div class="doc-profile-field">
+                <label class="doc-profile-label">Medical License <span class="doc-required-mark">*</span></label>
+                <input type="file" id="dpLicense" accept=".pdf,image/*" class="doc-file-input" />
+                <div class="doc-upload-note">Required. Shows registration with medical council.</div>
+              </div>
+
+              <div class="doc-profile-field">
+                <label class="doc-profile-label">Experience Letters</label>
+                <input type="file" id="dpExperienceDocs" multiple accept=".pdf,image/*" class="doc-file-input" />
+                <div class="doc-upload-note">Optional. You can upload letters from hospitals/clinics.</div>
+              </div>
+
+              <div class="doc-profile-field">
+                <label class="doc-profile-label">Additional Certificates</label>
+                <input type="file" id="dpExtraCerts" multiple accept=".pdf,image/*" class="doc-file-input" />
+                <div class="doc-upload-note">Optional. Workshops, fellowships, etc.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="doc-profile-actions">
+            <button class="btn-doc-cancel" id="btnProfileBack">Back</button>
+            <button class="btn-doc-save" id="btnProfileSave">Save & Continue</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('btnProfileBack').onclick = () => {
+      // if incomplete, back to landing; else to dashboard
+      if (!profile.profileComplete) {
+        location.hash = '#/';
+      } else {
+        location.hash = '#/doctor/dashboard';
+      }
+    };
+
+    document.getElementById('btnProfileSave').onclick = async () => {
+      const name = document.getElementById('dpName').value.trim();
+      const email = document.getElementById('dpEmail').value.trim().toLowerCase();
+      const mobile = document.getElementById('dpMobile').value.trim();
+      const spec = document.getElementById('dpSpec').value.trim();
+      const expYears = document.getElementById('dpExp').value.trim();
+      const fee = document.getElementById('dpFee').value.trim();
+      const address = document.getElementById('dpAddress').value.trim();
+      const locationField = document.getElementById('dpLocation').value.trim();
+      const availability = document.getElementById('dpAvailability').value.trim();
+      const about = document.getElementById('dpAbout').value.trim();
+      const services = document.getElementById('dpServices').value.trim();
+
+      if (!name || !email || !mobile || !spec || !expYears || !fee || !address || !locationField || !availability) {
+        alert('Please fill all required fields.');
+        return;
+      }
+
+      // Check unique email/mobile if changed
+      const dbLatest = loadDB(); // re-load to be safe
+      const conflict = dbLatest.users.find(
+        u =>
+          u.id !== doctor.id &&
+          (u.email === email || u.mobile === mobile)
+      );
+      if (conflict) {
+        alert('Email or mobile already used by another account.');
+        return;
+      }
+
+      const photoFile = document.getElementById('dpPhoto').files[0];
+      const degreeFile = document.getElementById('dpDegree').files[0];
+      const licenseFile = document.getElementById('dpLicense').files[0];
+      const expFiles = Array.from(document.getElementById('dpExperienceDocs').files || []);
+      const extraFiles = Array.from(document.getElementById('dpExtraCerts').files || []);
+
+      // For required docs: if none newly selected AND none existing -> invalid
+      if (!photoFile && !profile.photoData) {
+        alert('Please upload a profile photo.');
+        return;
+      }
+      if (!degreeFile && !profile.degree) {
+        alert('Please upload your degree certificate.');
+        return;
+      }
+      if (!licenseFile && !profile.license) {
+        alert('Please upload your medical license.');
+        return;
+      }
+
+      // Convert new files to data URLs (local demo; later move to server)
+      let photoData = profile.photoData || null;
+      let degreeData = profile.degree || null;
+      let licenseData = profile.license || null;
+      let expDocs = profile.expDocs || [];
+      let extraCerts = profile.extraCerts || [];
+
+      try {
+        if (photoFile) {
+          photoData = await fileToDataURL(photoFile);
+        }
+        if (degreeFile) {
+          degreeData = await fileToDataURL(degreeFile);
+        }
+        if (licenseFile) {
+          licenseData = await fileToDataURL(licenseFile);
+        }
+        if (expFiles.length > 0) {
+          expDocs = [];
+          for (const f of expFiles) {
+            const data = await fileToDataURL(f);
+            expDocs.push({ name: f.name, data });
+          }
+        }
+        if (extraFiles.length > 0) {
+          extraCerts = [];
+          for (const f of extraFiles) {
+            const data = await fileToDataURL(f);
+            extraCerts.push({ name: f.name, data });
+          }
+        }
+      } catch (err) {
+        console.error('File conversion error', err);
+        alert('Error reading some files. Try again with smaller files.');
+        return;
+      }
+
+      // Save back to doctor object in DB
+      doctor.name = name;
+      doctor.email = email;
+      doctor.mobile = mobile;
+      doctor.doctorProfile = {
+        profileComplete: true,
+        specialization: spec,
+        experienceYears: expYears,
+        fee,
+        clinicAddress: address,
+        location: locationField,
+        availability,
+        about,
+        services,
+        photoData,
+        degree: degreeData,
+        license: licenseData,
+        expDocs,
+        extraCerts
+      };
+
+      // Update DB and save
+      const index = dbLatest.users.findIndex(u => u.id === doctor.id);
+      dbLatest.users[index] = doctor;
+      saveDB(dbLatest);
+
+      alert('Profile saved successfully.');
+      location.hash = '#/doctor/dashboard';
+    };
+  }
+
+  // =======================
+  // Doctor Dashboard (UI)
+  // =======================
+  function renderDoctorDashboard() {
+    const ctx = getCurrentDoctorOrRedirect();
+    if (!ctx) return;
+    const { db, doctor } = ctx;
+    const profile = doctor.doctorProfile;
+
+    if (!profile || !profile.profileComplete) {
+      alert('Please complete your profile first.');
+      location.hash = '#/doctor/profile';
+      return;
+    }
+
+    // Placeholder stats until we wire appointments/prescriptions in next phase
+    const todayAppointments = db.appointments.filter(
+      a => a.doctorId === doctor.id && a.date === new Date().toISOString().slice(0,10)
+    );
+    const totalPrescriptions = db.prescriptions.filter(p => p.doctorId === doctor.id);
+    const totalBills = db.bills.filter(b => b.doctorId === doctor.id);
+
+    root.innerHTML = `
+      <div class="doc-layout">
+        <!-- SIDEBAR -->
+        <aside class="doc-sidebar">
+          <div>
+            <div class="doc-brand">
+              <div class="doc-logo">DC</div>
+              <div class="doc-brand-title">DoctorCare</div>
+            </div>
+
+            <nav class="doc-nav" id="docNav">
+              <button class="doc-nav-item active" data-tab="dashboard"><span>🏠</span>Dashboard</button>
+              <button class="doc-nav-item" data-tab="appointments"><span>📅</span>Appointments</button>
+              <button class="doc-nav-item" data-tab="patients"><span>👥</span>Patients</button>
+              <button class="doc-nav-item" data-tab="prescriptions"><span>💊</span>Prescriptions</button>
+              <button class="doc-nav-item" data-tab="earnings"><span>💰</span>Earnings</button>
+              <button class="doc-nav-item" data-tab="messages"><span>✉️</span>Messages</button>
+              <button class="doc-nav-item" data-tab="settings"><span>⚙️</span>Settings</button>
+              <button class="doc-nav-item" data-tab="notifications"><span>🔔</span>Notifications</button>
+            </nav>
+          </div>
+
+          <div class="doc-sidebar-bottom">
+            <button class="doc-logout-btn" id="btnDoctorLogout">Log Out</button>
+          </div>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="doc-main">
+          <div class="doc-main-header">
+            <div>
+              <div class="doc-main-title">Welcome, ${doctor.name.split(' ')[0] || 'Doctor'}</div>
+              <div class="text-sm text-muted">Dashboard overview</div>
+            </div>
+            <div class="doc-top-right">
+              <div class="doc-avatar">
+                ${
+                  profile.photoData
+                    ? `<img src="${profile.photoData}" alt="Profile" />`
+                    : (doctor.name ? doctor.name[0].toUpperCase() : 'D')
+                }
+              </div>
+              <button class="doc-profile-btn" id="btnGoProfile">My Profile</button>
+            </div>
+          </div>
+
+          <!-- DASHBOARD CONTENT -->
+          <section id="docDashboardContent">
+            <div class="doc-card" style="margin-top:8px;">
+              <div class="doc-section-title">Welcome, Dr. ${doctor.name || ''}</div>
+              <div class="doc-summary">
+                <div class="doc-card">
+                  <div class="doc-card-title">Today’s Appointments</div>
+                  <div class="doc-card-value">${todayAppointments.length}</div>
+                </div>
+                <div class="doc-card">
+                  <div class="doc-card-title">Total Prescriptions</div>
+                  <div class="doc-card-value">${totalPrescriptions.length}</div>
+                </div>
+                <div class="doc-card">
+                  <div class="doc-card-title">Bills Generated</div>
+                  <div class="doc-card-value">${totalBills.length}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="doc-grid" style="margin-top:16px;">
+              <!-- LEFT COLUMN -->
+              <div>
+                <div class="doc-card">
+                  <div class="doc-section-title">Upcoming Appointments</div>
+                  <div class="doc-upcoming-list" id="docUpcomingList">
+                    ${
+                      todayAppointments.length === 0
+                        ? '<div class="text-sm text-muted">No appointments booked yet.</div>'
+                        : todayAppointments.map(a => `
+                            <div class="doc-upcoming-item">
+                              <div>
+                                <div>${a.patientName || 'Patient'}</div>
+                                <div class="doc-upcoming-sub">${a.reason || 'Consultation'}</div>
+                              </div>
+                              <div>${a.time || ''}</div>
+                            </div>
+                          `).join('')
+                    }
+                  </div>
+                </div>
+
+                <div class="doc-card" style="margin-top:12px;">
+                  <div class="doc-section-title">Quick Actions</div>
+                  <div class="doc-quick-grid">
+                    <button class="doc-quick-btn" data-action="addPatient">
+                      <span>➕</span>Add Patient
+                    </button>
+                    <button class="doc-quick-btn" data-action="createAppt">
+                      <span>📅</span>Create Appointment
+                    </button>
+                    <button class="doc-quick-btn" data-action="prescribe">
+                      <span>💊</span>Prescribe
+                    </button>
+                    <button class="doc-quick-btn" data-action="viewSchedule">
+                      <span>🗓</span>View Schedule
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- RIGHT COLUMN -->
+              <div>
+                <div class="doc-card-small">
+                  <div class="doc-section-title">Messages</div>
+                  <div class="doc-list">
+                    <div class="doc-list-item">
+                      <span>Inbox is empty.</span>
+                      <span class="text-xs text-muted">–</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="doc-card-small">
+                  <div class="doc-section-title">Earnings Snapshot</div>
+                  <div class="text-sm text-muted">Detailed earnings will be added in the billing phase.</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Placeholder containers for other tabs (Appointments, etc.) to be filled later -->
+          <section id="docTabPlaceholder" style="display:none;">
+            <div class="doc-card">
+              <div class="doc-section-title" id="docTabTitle"></div>
+              <div class="text-sm text-muted">This section will be implemented in the next phase.</div>
+            </div>
+          </section>
+        </main>
+      </div>
+    `;
+
+    document.getElementById('btnGoProfile').onclick = () => {
+      location.hash = '#/doctor/profile';
+    };
+
+    document.getElementById('btnDoctorLogout').onclick = () => {
+      // When doctor logs out, patients should not be able to book → we’ll enforce in booking logic later
+      saveSession(null);
+      alert('Logged out. Patients cannot book appointments while you are offline (will be enforced in booking phase).');
+      location.hash = '#/';
+    };
+
+    // Sidebar tab navigation (show placeholder for now except dashboard)
+    const nav = document.getElementById('docNav');
+    const dashboardSection = document.getElementById('docDashboardContent');
+    const tabPlaceholder = document.getElementById('docTabPlaceholder');
+    const tabTitle = document.getElementById('docTabTitle');
+
+    nav.addEventListener('click', (e) => {
+      const btn = e.target.closest('.doc-nav-item');
+      if (!btn) return;
+      const tab = btn.getAttribute('data-tab');
+
+      // Active style
+      nav.querySelectorAll('.doc-nav-item').forEach(el => el.classList.remove('active'));
+      btn.classList.add('active');
+
+      if (tab === 'dashboard') {
+        dashboardSection.style.display = 'block';
+        tabPlaceholder.style.display = 'none';
+      } else {
+        dashboardSection.style.display = 'none';
+        tabPlaceholder.style.display = 'block';
+        tabTitle.textContent = tab.charAt(0).toUpperCase() + tab.slice(1);
+      }
+    });
+
+    // Quick actions (for now just show info)
+    document.querySelectorAll('.doc-quick-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const action = btn.getAttribute('data-action');
+        alert(`"${action}" flow will be implemented in upcoming phases.`);
+      });
+    });
+  }
+
+  // Kick off
   handleRoute();
 })();
