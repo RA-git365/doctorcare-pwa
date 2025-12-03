@@ -1,127 +1,429 @@
-/* ===========================
-   EXACT LANDING PAGE STYLE
-=========================== */
+:root {
+  --primary-blue: #0052A3;
+  --primary-blue-light: #0077CC;
+  --accent: #00E5FF;
+  --bg-light: #F5F8FF;
+  --card-bg: #FFFFFF;
+  --text-dark: #0A1F33;
+  --text-muted: #6B7B93;
+  --danger: #FF4D4D;
+  --success: #00C853;
+  --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.08);
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --transition-fast: 0.2s ease-out;
+  --border-light: 1px solid rgba(0,0,0,0.06);
+}
+
+* {
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+  margin: 0;
+  background: linear-gradient(180deg, #0052A3, #0077CC);
+  color: #fff;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+/* =============================
+   STEP 1 — LANDING PAGE
+============================= */
 
 .landing-container {
   width: 100%;
   min-height: 100vh;
   background: linear-gradient(180deg, #0052A3, #0077CC);
-  color: #fff;
-  padding: 24px;
+  padding: 22px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
 }
 
-/* TOP ACTION BUTTONS */
+/* TOP BUTTONS */
 .landing-top-buttons {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
   justify-content: center;
-  margin-top: 10px;
 }
 
 .btn-top {
-  background: white;
-  color: #003366;
-  border: none;
-  font-size: 14px;
+  background: #fff;
   padding: 10px 18px;
   border-radius: 12px;
+  font-size: 14px;
   cursor: pointer;
+  border: none;
   font-weight: 600;
+  color: #003366;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast);
 }
 
-/* BODY & LAYOUT */
-.landing-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 85%;
-  margin-top: 50px;
-}
-
-/* LEFT TEXT BLOCK */
-.landing-text-box {
-  max-width: 420px;
-}
-
-.landing-title {
-  font-size: 48px;
-  font-weight: 900;
-  line-height: 52px;
-  margin: 0;
-}
-
-.landing-subtext {
-  font-size: 18px;
-  margin-top: 14px;
+.btn-top:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.18);
   opacity: 0.95;
 }
 
-/* MAIN CTA */
+/* MAIN CONTENT */
+.landing-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 92%;
+  margin-top: 55px;
+}
+
+.landing-text-box {
+  max-width: 380px;
+}
+
+.landing-title {
+  font-size: 42px;
+  font-weight: 850;
+  color: #fff;
+  margin: 0;
+  line-height: 48px;
+}
+
+.landing-subtext {
+  margin-top: 14px;
+  font-size: 20px;
+  color: #E6EEFA;
+  font-weight: 400;
+}
+
+/* BOOK APPOINTMENT BUTTON */
 .btn-main {
   margin-top: 28px;
   background: #FF6A3D;
-  border: none;
-  color: white;
-  font-size: 20px;
-  padding: 14px 34px;
+  color: #fff;
+  padding: 15px 26px;
   border-radius: 14px;
+  font-size: 18px;
+  font-weight: 700;
+  border: none;
   cursor: pointer;
-  font-weight: bold;
-  box-shadow: 0 6px 10px rgba(0,0,0,0.2);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.20);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+}
+
+.btn-main:hover {
+  background: #ff5525;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(0,0,0,0.25);
 }
 
 /* ICON ROW */
 .icon-row {
   display: flex;
-  gap: 38px;
+  gap: 45px;
   margin-top: 40px;
 }
 
 .icon-item {
   text-align: center;
-  font-size: 16px;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .icon-circle {
-  font-size: 30px;
-  display: block;
-  margin-bottom: 6px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  margin: auto;
+  margin-bottom: 8px;
 }
 
-
-/* RIGHT SIDE IMAGE */
+/* RIGHT IMAGE */
 .landing-image img {
-  width: 300px;
-  max-width: 90vw;
+  width: 290px;
   height: auto;
-  filter: drop-shadow(0 12px 18px rgba(0,0,0,0.25));
+  animation: float 3s ease-in-out infinite;
 }
 
-/* FOOTER BRANDING */
+/* Floating Animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+/* FOOTER */
 .landing-footer {
   position: absolute;
-  bottom: 16px;
-  width: 100%;
-  text-align: center;
+  bottom: 22px;
   font-size: 28px;
-  font-weight: bold;
+  font-weight: 800;
+  color: #fff;
 }
 
-/* RESPONSIVE FOR MOBILE */
+/* ============== MOBILE TWEAKS ============== */
 @media (max-width: 768px) {
-  .landing-content {
+  .landing-main {
     flex-direction: column;
-    text-align: center;
+    align-items: center;
+    gap: 32px;
     margin-top: 40px;
-    gap: 18px;
   }
-  .landing-image {
-    display: flex;
-    justify-content: center;
-    width: 100%;
+  .landing-text-box {
+    text-align: left;
+  }
+  .landing-image img {
+    width: 230px;
   }
 }
+
+/* =============================
+   STEP 2 — SIGN UP PAGE
+   (Doctor & Patient)
+============================= */
+
+.auth-shell {
+  width: 100%;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #0052A3, #0077CC);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: #F5F8FF;
+  border-radius: 24px;
+  box-shadow: var(--shadow-soft);
+  padding: 24px 22px 20px;
+  position: relative;
+}
+
+.auth-role-tag {
+  position: absolute;
+  top: 12px;
+  right: 18px;
+  background: #E3F2FD;
+  color: #0052A3;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.auth-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-dark);
+  margin: 0;
+  margin-bottom: 4px;
+}
+
+.auth-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.auth-input-group {
+  margin-bottom: 12px;
+}
+
+.auth-label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 9px 11px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.12);
+  font-size: 14px;
+  outline: none;
+}
+
+.auth-input:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 1px rgba(0,82,163,0.15);
+}
+
+.auth-actions {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn-auth-primary {
+  background: linear-gradient(135deg, #0052A3, #0077CC);
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 8px 16px rgba(0,82,163,0.35);
+}
+
+.btn-auth-secondary {
+  background: #fff;
+  color: var(--text-dark);
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.08);
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* =============================
+   STEP 3 — LOGIN PAGE
+============================= */
+
+.login-shell {
+  width: 100%;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #0052A3, #0077CC);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 380px;
+  background: #F5F8FF;
+  border-radius: 24px;
+  box-shadow: var(--shadow-soft);
+  padding: 24px 22px 20px;
+  text-align: left;
+  position: relative;
+}
+
+.login-logo {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: #0052A3;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
+.login-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-dark);
+  margin: 0;
+  margin-bottom: 4px;
+}
+
+.login-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.login-input-group {
+  margin-bottom: 12px;
+}
+
+.login-label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.login-input {
+  width: 100%;
+  padding: 9px 11px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.12);
+  font-size: 14px;
+  outline: none;
+}
+
+.login-input:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 1px rgba(0,82,163,0.15);
+}
+
+.login-actions {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn-login-primary {
+  background: linear-gradient(135deg, #0052A3, #0077CC);
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 8px 16px rgba(0,82,163,0.35);
+}
+
+.btn-login-secondary {
+  background: #fff;
+  color: var(--text-dark);
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.08);
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.login-footer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.login-forgot {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #0052A3;
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Generic helper classes used later */
+.text-sm { font-size: 13px; }
+.text-xs { font-size: 11px; }
+.text-muted { color: var(--text-muted); }
+.mt-8 { margin-top: 8px; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.w-100 { width: 100%; }
