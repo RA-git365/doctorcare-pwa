@@ -1,130 +1,15 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
-  <meta name="theme-color" content="#00e5ff"/>
-  <title>DoctorCare — Book appointments & manage bills</title>
+  <meta charset="UTF-8" />
+  <title>DoctorCare</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <link rel="manifest" href="./manifest.json">
-  <link rel="stylesheet" href="./css/style.css">
-  <link rel="icon" href="./images/icon-192.png" sizes="192x192">
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-title" content="DoctorCare" />
+  <link rel="stylesheet" href="./css/style.css" />
 </head>
 <body>
-  <div id="app" class="landing-wrapper">
-    <!-- SPA content injected by app.js -->
-  </div>
+  <div id="app"></div>
 
-  <template id="tpl-landing">
-    <main class="landing">
-      <header class="landing-header">
-        <img src="./images/doctorcare-logo.png" alt="DoctorCare" class="logo">
-      </header>
-
-      <section class="landing-hero">
-        <h1>DoctorCare</h1>
-        <p class="sub">Book doctor appointments • Prescriptions • Billing</p>
-
-        <div class="top-buttons">
-          <button id="btn-doctor-login" class="btn btn-outline">Doctor Login</button>
-          <button id="btn-patient-login" class="btn btn-primary">Patient Login</button>
-        </div>
-
-        <p class="small-note">Works offline • Installable PWA</p>
-      </section>
-
-      <footer class="landing-footer">
-        <small>© DoctorCare</small>
-      </footer>
-    </main>
-  </template>
-
-  <template id="tpl-patient-home">
-    <div class="patient-home">
-      <div class="header-row">
-        <div>
-          <h2 id="patient-welcome">Welcome, Patient</h2>
-          <div class="patient-meta">
-            <span id="patient-name">—</span> • <span id="patient-id">#</span>
-          </div>
-        </div>
-        <div class="header-actions">
-          <button id="btn-edit-profile" class="icon-btn">Edit</button>
-          <button id="btn-logout" class="icon-btn">Logout</button>
-        </div>
-      </div>
-
-      <section class="cards-row">
-        <div class="card" id="card-doctors">
-          <h3>Doctors Near Me</h3>
-          <div id="doctors-list" class="list"></div>
-          <button id="btn-view-all-doctors" class="link-btn">View all</button>
-        </div>
-
-        <div class="card" id="card-prescriptions">
-          <h3>Prescriptions</h3>
-          <div id="prescriptions-list" class="list"></div>
-        </div>
-
-        <div class="card" id="card-appointments">
-          <h3>Appointments</h3>
-          <div id="appointments-list" class="list"></div>
-          <button id="btn-book-appointment" class="btn btn-primary">Book Appointment</button>
-        </div>
-
-        <div class="card" id="card-billing">
-          <h3>Billing Summary</h3>
-          <div id="billing-list" class="list"></div>
-        </div>
-      </section>
-    </div>
-  </template>
-
-  <template id="tpl-doctor-login">
-    <div class="auth-screen">
-      <h2>Doctor Login</h2>
-      <form id="doctor-login-form" class="form">
-        <label>Email
-          <input type="email" name="email" required/>
-        </label>
-        <label>Password
-          <input type="password" name="password" required/>
-        </label>
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary">Login</button>
-          <button id="btn-doctor-register" type="button" class="btn btn-outline">Register</button>
-        </div>
-      </form>
-    </div>
-  </template>
-
-  <template id="tpl-patient-login">
-    <div class="auth-screen">
-      <h2>Patient Login / Signup</h2>
-      <form id="patient-login-form" class="form">
-        <label>Full name
-          <input type="text" name="name" required/>
-        </label>
-        <label>Mobile
-          <input type="text" name="mobile" required/>
-        </label>
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary">Proceed</button>
-        </div>
-      </form>
-    </div>
-  </template>
-
-  <script src="./js/app.js" defer></script>
-  <script>
-    // register service worker
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js')
-        .then(() => console.log('[SW] Registered'))
-        .catch(err => console.warn('[SW] Reg failed', err));
-    }
-  </script>
+  <script src="./js/app.js"></script>
 </body>
 </html>
