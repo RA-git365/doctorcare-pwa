@@ -1375,19 +1375,24 @@ function renderBillingSummary(appointmentId) {
 
   root.innerHTML = `
     <div class="app-content">
-
-      <h2>Final Bill</h2>
+      <h2>Billing Complete</h2>
 
       <div class="card">
         <strong>Patient:</strong> ${patient.name}<br>
-        <strong>Total:</strong> ₹${bill.total}
+        <strong>Total:</strong> ₹${bill.total}<br><br>
+        Prescription PDF: ${appointment.prescription?.pdfGenerated ? "✔ Ready" : "❌ Not Generated"}<br>
+        Invoice PDF: ${bill.pdfGenerated ? "✔ Ready" : "❌ Not Generated"}
       </div>
 
-      <button class="btn-primary w-100 mt-16" onclick="alert('PDF + Print will be available in next phase')">📄 Download PDF (Coming Next)</button>
-      <button class="btn-ghost w-100 mt-8" onclick="renderDoctorDashboard()">Finish</button>
+      <button class="btn-primary w-100 mt-12" onclick="generatePrescriptionPDF('${appointmentId}')">📄 Generate Prescription PDF</button>
+
+      <button class="btn-primary w-100 mt-12" onclick="generateBillPDF('${appointmentId}')">🧾 Generate Invoice PDF</button>
+
+      <button class="btn-ghost w-100 mt-12" onclick="renderDoctorDashboard()">Finish</button>
     </div>
   `;
 }
+
   // ======================================================
 // PRESCRIPTION PDF GENERATOR (PDFMake Hybrid Style)
 // ======================================================
