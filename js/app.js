@@ -1044,6 +1044,171 @@ function renderIOSBooking(doctorId) {
 
     renderPatientDashboard();
   };
+} 
+  // ======================================================
+// PHASE 4 — PRESCRIPTION BUILDER (Compact Card Layout)
+// ======================================================
+
+function renderPrescription(appointmentId) {
+  const { db } = getCurrentDoctorOrRedirect();
+  const appointment = db.appointments.find(a => a.id === appointmentId);
+  const patient = db.users.find(u => u.id === appointment.patientId);
+
+  // Create object if not exists
+  if (!appointment.prescription) {
+    appointment.prescription = {
+      diagnosis: "",
+      symptoms: "",
+      medicines: [],
+      advice: "",
+      notes: ""
+    };
+    saveDB(db);
+  }
+
+  const p = appointment.prescription;
+
+  root.innerHTML = `
+    <div class="app-content">
+
+      <h2 class="section-title">Prescription for ${patient.name}</h2>
+
+      <div class="card">
+        <label class="input-label">Diagnosis</label>
+        <input class="input-control" id="diagInput" value="${p.diagnosis}">
+      </div>
+
+      <div class="card">
+        <label class="input-label">Symptoms</label>
+        <textarea class="textarea-control" id="symptomInput">${p.symptoms}</textarea>
+      </div>
+
+      <div class="card">
+        <label class="input-label">Medicines</label>
+
+        <div id="medList">
+          ${
+            p.medicines.length
+            ? p.medicines.map((m,i)=>`
+              <div class="simple-list-item" style="display:flex;justify-content:space-between;align-items:center;">
+                <span>${m.name} — ${m.dose} — ${m.frequency} — ${m.days} days</span>
+                <button class="btn btn-danger" onclick="removeMedicine('${appointmentId}',${i})">✕</button>
+              </div>
+            `).join('')
+            : `<p class="text-muted">No medicines added yet</p>`
+          }
+        </div>
+
+        <button class="btn btn-primary mt-12" onclick="renderAddMedicine('${appointmentId}')">+ Add Medicine</button>
+      </div>
+
+      <div class="card">
+        <label class="input-label">Lifestyle Advice</label>
+        <textarea class="textarea-control" id="adviceInput">${p.advice}</textarea>
+      </div>
+
+      <div class="card">
+        <label class="input-label">Additional Notes (Voice Supported Soon)</label>
+        <textarea class="textarea-control" id="notesInput">${p.notes}</textarea>
+        <button class="btn-ghost mt-8">🎤 Voice Dictation (Coming Soon)</button>
+      </div>
+
+      <button class="btn-primary w-100 mt-16" onclick="savePrescription('${appointmentId}')">Save & Continue ➜ Billing</button>
+
+      <button class="btn-ghost w-100 mt-8" onclick="renderDoctorDashboard()">Cancel</button>
+    </div>
+  `;
 }
+
+
+// ======================================================
+// ADD / REMOVE MEDICINE HANDLERS
+// ======================================================
+
+function renderAddMedicine(appointmentId) {
+  root.innerHTML = `
+    <div class="app-content">
+      <h2>Add Medicine</h2>
+
+      <div class="card">
+        <label class="input-label">Medicine Name</label>
+        <input class="input-control" id="medName">
+      </div>
+
+      <div class="card">
+        <label class="input-label">Dose</label>
+        <input class="input-control" id="medDose" placeholder="Ex: 500mg">
+      </div>
+
+      <div class="card">
+        <label class="input-label">Frequency</label>
+        <input class="input-control" id="medFrequency" placeholder="Ex: 1-0-1">
+      </div>
+
+      <div class="card">
+        <label class="input-label">Days</label>
+        <input class="input-control" id="medDays" placeholder="Ex: 5">
+      </div>
+
+      <div class="card">
+        <label class="input-label">Notes (Optional)</label>
+        <textarea class="textarea-control" id="medNotes"></textarea>
+      </div>
+
+      <button class="btn-primary w-100" onclick="addMedicine('${appointmentId}')">➕ Add</button>
+      <button class="btn-ghost w-100 mt-8" onclick="renderPrescription('${appointmentId}')">Back</button>
+    </div>
+  `;
+}
+
+function addMedicine(appointmentId) {
+  const { db } = getCurrentDoctorOrRedirect();
+  const appointment = db.appointments.find(a => a.id === appointmentId);
+
+  const med = {
+    name: document.getElementById("medName").value.trim(),
+    dose: document.getElementById("medDose").value.trim(),
+    frequency: document.getElementById("medFrequency").value.trim(),
+    days: document.getElementById("medDays").value.trim(),
+    notes: document.getElementById("medNotes").value.trim(),
+  };
+
+  if (!med.name || !med.dose) return alert("Medicine name and dose are required.");
+
+  appointment.prescription.medicines.push(med);
+  saveDB(db);
+
+  renderPrescription(appointmentId);
+}
+
+function removeMedicine(appointmentId, index) {
+  const { db } = getCurrentDoctorOrRedirect();
+  const appointment = db.appointments.find(a => a.id === appointmentId);
+  appointment.prescription.medicines.splice(index,1);
+  saveDB(db);
+  renderPrescription(appointmentId);
+}
+
+
+// ======================================================
+// SAVE PRESCRIPTION & MOVE TO BILLING
+// ======================================================
+
+function savePrescription(appointmentId) {
+  const { db } = getCurrentDoctorOrRedirect();
+  const appointment = db.appointments.find(a => a.id === appointmentId);
+
+  appointment.prescription.diagnosis = document.getElementById("diagInput").value;
+  appointment.prescription.symptoms  = document.getElementById("symptomInput").value;
+  appointment.prescription.advice    = document.getElementById("adviceInput").value;
+  appointment.prescription.notes     = document.getElementById("notesInput").value;
+  appointment.status = "prescribed";
+
+  saveDB(db);
+
+  alert("Prescription saved. Proceeding to billing...");
+  renderBilling(appointmentId);
+}
+
 
 })();
