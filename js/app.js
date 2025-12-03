@@ -267,94 +267,101 @@
   // =======================
   // STEP 3 — LOGIN
   // =======================
-  function renderLogin(role) {
-    const roleLabel = role === 'doctor' ? 'Doctor' : 'Patient';
+function renderLogin(role) {
+  const roleLabel = role === "doctor" ? "Doctor" : "Patient";
 
-    root.innerHTML = `
-      <div class="login-shell">
-        <div class="login-card">
-          <div class="login-logo">DC</div>
-          <h2 class="login-title">${roleLabel} Log In</h2>
-          <p class="login-subtitle">Use your email or mobile number to access your ${roleLabel.toLowerCase()} account.</p>
+  root.innerHTML = `
+    <div class="login-shell">
+      <div class="login-card">
+        <div class="login-logo">DC</div>
+        <h2 class="login-title">${roleLabel} Log In</h2>
+        <p class="login-subtitle">Use your email or mobile number to access your ${roleLabel.toLowerCase()} account.</p>
 
-          <div class="login-input-group">
-            <label class="login-label">Email or Mobile</label>
-            <input type="text" id="liIdentifier" class="login-input" />
-          </div>
+        <div class="login-input-group">
+          <label class="login-label">Email or Mobile</label>
+          <input type="text" id="liIdentifier" class="login-input" />
+        </div>
 
-          <div class="login-input-group">
-            <label class="login-label">Password</label>
-            <input type="password" id="liPassword" class="login-input" />
-          </div>
+        <div class="login-input-group">
+          <label class="login-label">Password</label>
+          <input type="password" id="liPassword" class="login-input" />
+        </div>
 
-          <div class="login-actions">
-            <button class="btn-login-primary" id="btnDoLogin">Log In</button>
-            <button class="btn-login-secondary" id="btnBackFromLogin">Back</button>
-          </div>
+        <div class="login-actions">
+          <button class="btn-login-primary" id="btnDoLogin">Log In</button>
+          <button class="btn-login-secondary" id="btnBackFromLogin">Back</button>
+        </div>
 
-          <div class="login-footer-row">
-            <span>Need an account?</span>
-            <button class="login-forgot" id="btnGoSignup">Sign Up</button>
-          </div>
+        <div class="login-footer-row">
+          <span>Need an account?</span>
+          <button class="login-forgot" id="btnGoSignup">Sign Up</button>
+        </div>
 
-          <div class="login-footer-row">
-            <span>Forgot your password?</span>
-            <button class="login-forgot" id="btnForgot">Reset</button>
-          </div>
+        <div class="login-footer-row">
+          <span>Forgot your password?</span>
+          <button class="login-forgot" id="btnForgot">Reset</button>
         </div>
       </div>
-    `;
+    </div>
+  `;
 
-    document.getElementById('btnBackFromLogin').onclick = () => {
-      location.hash = '#/';
-    };
+  // Navigation handlers
+  document.getElementById("btnBackFromLogin").onclick = () => {
+    location.hash = "#/";
+  };
 
-    document.getElementById('btnGoSignup').onclick = () => {
-      location.hash = role === 'doctor' ? '#/doctor/signup' : '#/patient/signup';
-    };
+  document.getElementById("btnGoSignup").onclick = () => {
+    location.hash = role === "doctor" ? "#/doctor/signup" : "#/patient/signup";
+  };
 
-    document.getElementById('btnForgot').onclick = () => {
-      alert('Password reset will be connected to email/SMS in the online-server phase.');
-    };
+  document.getElementById("btnForgot").onclick = () => {
+    alert("Password reset will be connected to email/SMS in the online-server phase.");
+  };
 
-    document.getElementById('btnDoLogin').onclick = () => {
-      const identifier = document.getElementById('liIdentifier').value.trim().toLowerCase();
-      const password = document.getElementById('liPassword').value;
-      if (!identifier || !password) {
-        alert('Please fill both fields.');
-        return;
-      }
+  // Login Action
+  document.getElementById("btnDoLogin").onclick = () => {
+    const identifier = document.getElementById("liIdentifier").value.trim().toLowerCase();
+    const password = document.getElementById("liPassword").value;
 
-      const db = loadDB();
-      const user = db.users.find(
-        u =>
-          u.role === role &&
-          (u.email === identifier || u.mobile === identifier) &&
-          u.password === password
-      );
+    if (!identifier || !password) {
+      alert("Please fill both fields.");
+      return;
+    }
 
-      if (!user) {
-        alert('Invalid credentials or role.');
-        return;
-      }
+    const db = loadDB();
+    const user = db.users.find(
+      u =>
+        u.role === role &&
+        (u.email === identifier || u.mobile === identifier) &&
+        u.password === password
+    );
 
-      saveSession({ userId: user.id, role: user.role });
+    if (!user) {
+      alert("Invalid credentials or role.");
+      return;
+    }
 
-      if (role === 'doctor') {
-        // Check profile completion
-        if (!user.doctorProfile || !user.doctorProfile.profileComplete) {
-          alert('Please complete your doctor profile.');
-          location.hash = '#/doctor/profile';
-        } else {
-          location.hash = '#/doctor/dashboard';
-        }
+    saveSession({ userId: user.id, role: user.role });
+
+    // Doctor Logic
+    if (role === "doctor") {
+      if (!user.doctorProfile || !user.doctorProfile.profileComplete) {
+        alert("Please complete your doctor profile.");
+        location.hash = "#/doctor/profile";
       } else {
-        alert('Logged in as patient. (Patient dashboard comes next phase.)');
-        // later: location.hash = '#/patient/dashboard';
+        location.hash = "#/doctor/dashboard";
       }
-    };
-  }
+    }
 
+    // Patient Logic (UPDATED HERE)
+    else if (role === "patient") {
+      location.hash = "#/patient/dashboard";
+      renderPatientDashboard();
+    }
+  };
+}
+
+      
   // =======================
   // Helper — Require Doctor Session
   // =======================
