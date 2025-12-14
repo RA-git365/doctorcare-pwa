@@ -158,7 +158,7 @@ window.addEventListener('hashchange', handleRoute);
 
           <!-- RIGHT IMAGE -->
           <div class="landing-image">
-           <img src="./images/hero-mobile.png.png" alt="DoctorCare Hero" class="landing-hero-img">
+           <img src="./images/hero-mobile.png.png" alt="DoctorCare Hero" class="hero-mobile.pmg-img">
           </div>
         </div>
 
