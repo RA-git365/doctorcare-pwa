@@ -59,50 +59,62 @@
     });
   }
 
-  // =======================
-  // Router
-  // =======================
-  function handleRoute() {
-    const hash = window.location.hash || '#/';
+// =======================
+// Router
+// =======================
+function handleRoute() {
+  const hash = window.location.hash || '#/';
 
-    if (hash === '#/' || hash === '') {
-      renderLanding();
-      return;
-    }
-
-    if (hash.startsWith('#/doctor/signup')) {
-      renderSignup('doctor');
-      return;
-    }
-    if (hash.startsWith('#/patient/signup')) {
-      renderSignup('patient');
-      return;
-    }
-
-    if (hash.startsWith('#/doctor/login')) {
-      renderLogin('doctor');
-      return;
-    }
-    if (hash.startsWith('#/patient/login')) {
-      renderLogin('patient');
-      return;
-    }
-
-    if (hash.startsWith('#/doctor/profile')) {
-      renderDoctorProfile();
-      return;
-    }
-
-    if (hash.startsWith('#/doctor/dashboard')) {
-      renderDoctorDashboard();
-      return;
-    }
-
-    // default
+  // Landing
+  if (hash === '#/' || hash === '') {
     renderLanding();
+    return;
   }
 
-  window.addEventListener('hashchange', handleRoute);
+  // Signup
+  if (hash.startsWith('#/doctor/signup')) {
+    renderSignup('doctor');
+    return;
+  }
+  if (hash.startsWith('#/patient/signup')) {
+    renderSignup('patient');
+    return;
+  }
+
+  // Login
+  if (hash.startsWith('#/doctor/login')) {
+    renderLogin('doctor');
+    return;
+  }
+  if (hash.startsWith('#/patient/login')) {
+    renderLogin('patient');
+    return;
+  }
+
+  // Doctor routes
+  if (hash.startsWith('#/doctor/profile')) {
+    renderDoctorProfile();
+    return;
+  }
+
+  if (hash.startsWith('#/doctor/dashboard')) {
+    renderDoctorDashboard();
+    return;
+  }
+
+  // ✅ Patient dashboard (MISSING EARLIER)
+  if (hash.startsWith('#/patient/dashboard')) {
+    renderPatientDashboard();
+    return;
+  }
+
+  // Default fallback
+  renderLanding();
+}
+
+// Initial load + hash changes
+window.addEventListener('load', handleRoute);
+window.addEventListener('hashchange', handleRoute);
 
   // =======================
   // STEP 1 — Landing Page
