@@ -162,8 +162,7 @@ window.addEventListener('hashchange', handleRoute);
           </div>
         </div>
 
-        <div class="landing-footer">DoctorCare</div>
-      </div>
+       
     `;
 
     document.getElementById('btnDoctorSignupTop').onclick = () => {
