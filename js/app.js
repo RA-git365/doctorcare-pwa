@@ -1,4 +1,4 @@
-// DoctorCare — Phase 2
+// DoctorCare — Phase 1
 // Landing + Auth + Doctor Profile + Doctor Dashboard (localStorage-based)
 
 (function () {
@@ -119,70 +119,92 @@ window.addEventListener('hashchange', handleRoute);
   // =======================
   // STEP 1 — Landing Page
   // =======================
-  function renderLanding() {
-    root.innerHTML = `
-      <div class="landing-container">
+ function renderLanding() {
+  root.innerHTML = `
+    <div class="landing-container">
 
-        <!-- TOP BUTTONS -->
-        <div class="landing-top-buttons">
-          <button class="btn-top" id="btnDoctorSignupTop">Doctor Sign Up</button>
-          <button class="btn-top" id="btnDoctorLoginTop">Doctor Log In</button>
-          <button class="btn-top" id="btnPatientSignupTop">Patient Sign Up</button>
-          <button class="btn-top" id="btnPatientLoginTop">Patient Log In</button>
-        </div>
+      <!-- TOP BUTTONS -->
+      <div class="landing-top-buttons">
+        <button class="btn-top" id="btnDoctorSignupTop">Doctor Sign Up</button>
+        <button class="btn-top" id="btnDoctorLoginTop">Doctor Log In</button>
+        <button class="btn-top" id="btnPatientSignupTop">Patient Sign Up</button>
+        <button class="btn-top" id="btnPatientLoginTop">Patient Log In</button>
+      </div>
 
-        <!-- MAIN CONTENT -->
-        <div class="landing-main">
-          <!-- LEFT -->
-          <div class="landing-text-box">
-            <h1 class="landing-title">Health in<br>Your Hands.</h1>
-            <p class="landing-subtext">Just Click, Book, and<br>Feel Better.</p>
+      <!-- MAIN CONTENT -->
+      <div class="landing-main">
 
-            <button class="btn-main" id="btnMainBook">Book Appointment</button>
+        <!-- LEFT CONTENT -->
+        <div class="landing-text-box">
+          <h1 class="landing-title">
+            Health in <br> Your Hands.
+          </h1>
 
-            <div class="icon-row">
-              <div class="icon-item">
-                <div class="icon-circle">✔</div>
-                <p>Click</p>
-              </div>
-              <div class="icon-item">
-                <div class="icon-circle">📅</div>
-                <p>Book</p>
-              </div>
-              <div class="icon-item">
-                <div class="icon-circle">🙂</div>
-                <p>Feel Better</p>
-              </div>
+          <p class="landing-subtext">
+            Just Click, Book, and <br> Feel Better.
+          </p>
+
+          <button class="btn-main" id="btnMainBook">
+            Book Appointment
+          </button>
+
+          <!-- ICON ROW -->
+          <div class="icon-row">
+            <div class="icon-item">
+              <div class="icon-circle">✔</div>
+              <p>Click</p>
+            </div>
+
+            <div class="icon-item">
+              <div class="icon-circle">📅</div>
+              <p>Book</p>
+            </div>
+
+            <div class="icon-item">
+              <div class="icon-circle">🙂</div>
+              <p>Feel Better</p>
             </div>
           </div>
-
-          <!-- RIGHT IMAGE -->
-          <div class="landing-image">
-           <img src="./images/hero-mobile.png.png" alt="DoctorCare Hero" class="hero-mobile.png-img">
-          </div>
         </div>
 
-       
-    `;
+        <!-- RIGHT IMAGE -->
+        <div class="landing-image">
+          <img src="./images/hero-mobile.png" 
+               alt="DoctorCare Hero"
+               class="hero-image">
+        </div>
 
-    document.getElementById('btnDoctorSignupTop').onclick = () => {
-      location.hash = '#/doctor/signup';
-    };
-    document.getElementById('btnDoctorLoginTop').onclick = () => {
-      location.hash = '#/doctor/login';
-    };
-    document.getElementById('btnPatientSignupTop').onclick = () => {
-      location.hash = '#/patient/signup';
-    };
-    document.getElementById('btnPatientLoginTop').onclick = () => {
-      location.hash = '#/patient/login';
-    };
+      </div>
 
-    document.getElementById('btnMainBook').onclick = () => {
-      // for now: go to patient login, later direct to AI/manual booking
-      location.hash = '#/patient/login';
-    };
-  }
+      <!-- BOTTOM BRANDING -->
+      <div class="landing-footer">
+        DoctorCare
+      </div>
+
+    </div>
+  `;
+
+  // Routing
+  document.getElementById('btnDoctorSignupTop').onclick = () => {
+    location.hash = '#/doctor/signup';
+  };
+
+  document.getElementById('btnDoctorLoginTop').onclick = () => {
+    location.hash = '#/doctor/login';
+  };
+
+  document.getElementById('btnPatientSignupTop').onclick = () => {
+    location.hash = '#/patient/signup';
+  };
+
+  document.getElementById('btnPatientLoginTop').onclick = () => {
+    location.hash = '#/patient/login';
+  };
+
+  document.getElementById('btnMainBook').onclick = () => {
+    location.hash = '#/patient/login';
+  };
+}
 
   // =======================
   // STEP 2 — SIGN UP
